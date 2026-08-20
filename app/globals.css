@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+:root {
+  --marca-violeta: #8100cc;
+  --marca-rojo: #ff3333;
+  --marca-amarillo: #f2d80a;
+  --marca-noche: #000021;
+  --marca-claro: #eaeff4;
+}
+
+@theme inline {
+  --font-titillium: var(--font-titillium-web);
+
+  --color-marca-violeta: var(--marca-violeta);
+  --color-marca-rojo: var(--marca-rojo);
+  --color-marca-amarillo: var(--marca-amarillo);
+  --color-marca-noche: var(--marca-noche);
+  --color-marca-claro: var(--marca-claro);
+}
+
+body {
+  background: var(--marca-claro);
+  color: var(--marca-noche);
+  font-family: var(--font-titillium-web), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-titillium-web), system-ui, sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--marca-rojo);
+}
