@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Titillium_Web } from "next/font/google";
 import "./globals.css";
+import { createClient } from "@/lib/supabase/server";
+import { UserProvider } from "@/components/providers/user-provider";
+import { SiteHeader } from "@/components/nav/site-header";
 
 const titilliumWeb = Titillium_Web({
   variable: "--font-titillium-web",
@@ -13,15 +16,23 @@ export const metadata: Metadata = {
   description: "El juego de cartas coleccionables de Estúpido Nerd",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="es">
       <body className={`${titilliumWeb.variable} antialiased`}>
-        {children}
+        <UserProvider initialUser={user}>
+          <SiteHeader />
+          {children}
+        </UserProvider>
       </body>
     </html>
   );
