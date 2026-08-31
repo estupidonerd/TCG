@@ -12,9 +12,12 @@ export default async function CanjearPage() {
 
   const cardBackUrl = (settings as GameSettings | null)?.card_back_screen_url ?? null;
 
+  // Sin padding/fondo propios a propósito: la apertura de sobre es un
+  // momento inmersivo (fondo #000021 de marca) que necesita ocupar toda la
+  // pantalla sin el padding/centrado que sí quiere el formulario de antes
+  // -- cada uno de los dos estados de RedeemForm controla su propio fondo.
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-8 px-6 py-12">
-      <h1 className="text-3xl sm:text-4xl">Canjear código</h1>
+    <main className="min-h-svh">
       <RedeemForm cardBackUrl={cardBackUrl} />
     </main>
   );

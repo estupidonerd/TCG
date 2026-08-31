@@ -6,8 +6,10 @@ import { useUser } from "@/components/providers/user-provider";
 import { TradeBadge } from "./trade-badge";
 
 const LINKS = [
-  { href: "/coleccion", label: "Colección" },
   { href: "/canjear", label: "Canjear" },
+  { href: "/coleccion", label: "Colección" },
+  { href: "/mazos", label: "Mazos" },
+  { href: "/duelos", label: "Duelos" },
   { href: "/intercambios", label: "Intercambios" },
   { href: "/contactos", label: "Amigos" },
   { href: "/imprimir", label: "Imprimir" },

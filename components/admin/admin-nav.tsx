@@ -11,6 +11,8 @@ const LINKS = [
   { href: "/admin/packs", label: "Sobres" },
   { href: "/admin/codes", label: "Códigos" },
   { href: "/admin/codes/stats", label: "Estadísticas" },
+  { href: "/admin/usuarios", label: "Usuarios" },
+  { href: "/admin/feedback", label: "Feedback" },
   { href: "/admin/ajustes", label: "Ajustes" },
 ];
 

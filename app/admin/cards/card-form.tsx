@@ -89,7 +89,7 @@ export function CardForm({
             className={fieldInputClass}
           >
             <option value="" disabled>
-              Elegí una expansión
+              Elige una expansión
             </option>
             {sets.map((set) => (
               <option key={set.id} value={set.id}>
@@ -172,7 +172,7 @@ export function CardForm({
               className={fieldInputClass}
             >
               <option value="" disabled>
-                Elegí un Género
+                Elige un Género
               </option>
               {genres.map((genre) => (
                 <option key={genre.id} value={genre.id}>
@@ -191,7 +191,7 @@ export function CardForm({
               className={fieldInputClass}
             >
               <option value="" disabled>
-                Elegí un Rasgo
+                Elige un Rasgo
               </option>
               {traits.map((trait) => (
                 <option key={trait.id} value={trait.id}>

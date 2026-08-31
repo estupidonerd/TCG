@@ -81,7 +81,7 @@ export async function updateGameSettings(formData: FormData) {
   if (packImageUrl !== undefined) update.pack_image_url = packImageUrl;
 
   if (Object.keys(update).length === 0) {
-    throw new Error("Elegí al menos una imagen para actualizar.");
+    throw new Error("Elige al menos una imagen para actualizar.");
   }
 
   const { error } = await admin.from("game_settings").update(update).eq("id", true);

@@ -35,3 +35,17 @@ h6 {
   text-transform: uppercase;
   color: var(--marca-rojo);
 }
+
+/* Red de seguridad para prefers-reduced-motion: cubre las animaciones CSS
+   nativas de Tailwind (skeletons con animate-pulse, spinners con
+   animate-spin) que no pasan por Framer Motion y por lo tanto no pueden
+   leer el hook usePrefersReducedMotion desde un Server Component. Las
+   animaciones armadas con Framer Motion se apagan aparte, por componente,
+   con ese hook. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .animate-spin,
+  .animate-bounce {
+    animation: none !important;
+  }
+}

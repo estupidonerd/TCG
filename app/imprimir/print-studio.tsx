@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { getPrintAssets, type PrintAssets } from "./actions";
 import { PrintSheet, PAGE_SIZES } from "@/components/imprimir/print-sheet";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { OwnedPrintableCard } from "./page";
 
 type PageSizeKey = keyof typeof PAGE_SIZES;
@@ -55,7 +56,7 @@ export function PrintStudio({
       try {
         const result = await getPrintAssets(Array.from(selected));
         if (result.cards.length === 0) {
-          setError("No se pudo generar la hoja: revisá tu selección.");
+          setError("No se pudo generar la hoja: revisa tu selección.");
           return;
         }
         setAssets(result);
@@ -67,12 +68,12 @@ export function PrintStudio({
 
   if (ownedCards.length === 0) {
     return (
-      <div className="mx-auto max-w-xl py-16 text-center">
+      <div className="mx-auto max-w-xl text-center">
         <h1 className="text-3xl sm:text-4xl">Imprimir</h1>
-        <p className="mt-3 text-marca-noche/70">
-          Todavía no tenés cartas en tu colección. Canjeá un código para conseguir tu primer
-          sobre.
-        </p>
+        <EmptyState
+          icon="🖨️"
+          message="Todavía no tienes cartas en tu colección. Canjea un código para conseguir tu primer sobre."
+        />
       </div>
     );
   }
@@ -160,7 +161,7 @@ export function PrintStudio({
             type="button"
             onClick={handleGenerate}
             disabled={selected.size === 0 || pending}
-            className="self-start rounded-xl bg-marca-violeta px-6 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="self-start rounded-xl bg-marca-rojo px-6 py-3 text-sm font-bold text-marca-claro transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             {pending
               ? "Generando…"
@@ -182,7 +183,7 @@ export function PrintStudio({
             <button
               type="button"
               onClick={() => window.print()}
-              className="rounded-xl bg-marca-violeta px-6 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90"
+              className="rounded-xl bg-marca-rojo px-6 py-3 text-sm font-bold text-marca-claro transition-opacity hover:opacity-90"
             >
               Imprimir
             </button>

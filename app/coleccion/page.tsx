@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { CollectionGrid } from "./collection-grid";
+import { WelcomeModal } from "@/components/coleccion/welcome-modal";
 import { sortCardsBySet } from "@/lib/utils/sort-cards-by-set";
 import type { Card, CardSet, CollectionCard, Genre, Trait, TradeDefault } from "@/lib/supabase/types";
 
@@ -41,7 +42,11 @@ export default async function ColeccionPage() {
       // RLS ya limita esto a las propias filas, pero el filtro explícito deja
       // la intención clara en el código y evita depender solo de la policy.
       supabase.from("user_cards").select("card_id, quantity").eq("user_id", user!.id),
-      supabase.from("profiles").select("trade_default").eq("id", user!.id).single(),
+      supabase
+        .from("profiles")
+        .select("trade_default, has_seen_welcome")
+        .eq("id", user!.id)
+        .single(),
     ]);
 
   const quantityByCard = new Map(
@@ -61,6 +66,7 @@ export default async function ColeccionPage() {
 
   return (
     <main className="min-h-svh px-4 py-8 sm:px-6">
+      <WelcomeModal show={!profile?.has_seen_welcome} />
       <CollectionGrid
         cards={collectionCards}
         sets={typedSets}

@@ -3,10 +3,30 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Rutas que requieren sesión iniciada. Si no hay usuario, se redirige a /login
 // preservando la ruta original en ?next= para volver ahí después de loguear.
-const PROTECTED_PATHS = ["/coleccion", "/canjear", "/intercambios", "/imprimir", "/contactos"];
+const PROTECTED_PATHS = [
+  "/coleccion",
+  "/canjear",
+  "/intercambios",
+  "/imprimir",
+  "/contactos",
+  "/mazos",
+  "/duelos",
+  "/cuenta",
+  "/ajustes",
+];
 
 function isProtectedPath(pathname: string) {
   return PROTECTED_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
+
+// Rutas que un usuario baneado (o cualquiera) tiene que poder seguir
+// pisando sin quedar atrapado en un loop de redirects hacia /baneado.
+const BAN_EXEMPT_PATHS = ["/baneado", "/login", "/auth/callback"];
+
+function isBanExempt(pathname: string) {
+  return BAN_EXEMPT_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
 }
@@ -44,6 +64,28 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+
+  // Baneado: sin acceso a ninguna otra parte de la app (ni siquiera /admin)
+  // salvo cerrar sesión. Se revalida también dentro de redeem_code/
+  // create_trade/accept_trade/save_deck (public.is_banned) por si alguien
+  // se salta esta pantalla llamando a la API directo.
+  if (user && !isBanExempt(pathname)) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("banned_until")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.banned_until) {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      if (todayStr < profile.banned_until) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = "/baneado";
+        redirectUrl.search = "";
+        return NextResponse.redirect(redirectUrl);
+      }
+    }
+  }
 
   if (isProtectedPath(pathname) && !user) {
     const redirectUrl = request.nextUrl.clone();

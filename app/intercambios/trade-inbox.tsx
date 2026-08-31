@@ -6,9 +6,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SaveContactButton } from "@/components/trades/save-contact-button";
+import { BlockUserButton } from "@/components/trades/block-user-button";
 import { TradeAcceptAnimation } from "@/components/trades/trade-accept-animation";
 import { profileLabel } from "@/lib/utils/profile-label";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { TradeStatus } from "@/lib/supabase/types";
 import type { TradeItemWithCard, TradeWithDetails } from "./page";
 
@@ -120,7 +122,7 @@ export function TradeInbox({ trades: initialTrades }: { trades: TradeWithDetails
         <h1 className="text-3xl sm:text-4xl">Intercambios</h1>
         <Link
           href="/intercambios/nuevo"
-          className="touch-manipulation rounded-xl bg-marca-violeta px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+          className="touch-manipulation rounded-xl bg-marca-rojo px-4 py-2.5 text-sm font-bold text-marca-claro transition-opacity hover:opacity-90"
         >
           Nuevo intercambio
         </Link>
@@ -150,11 +152,16 @@ export function TradeInbox({ trades: initialTrades }: { trades: TradeWithDetails
       )}
 
       {shown.length === 0 && (
-        <p className="py-12 text-center text-sm text-marca-noche/50">
-          {tab === "recibidas" && "No tienes ofertas pendientes por recibir."}
-          {tab === "enviadas" && "No tienes ofertas pendientes por enviar."}
-          {tab === "historial" && "Todavía no hay intercambios resueltos."}
-        </p>
+        <EmptyState
+          icon="🤝"
+          message={
+            tab === "recibidas"
+              ? "No tienes ofertas pendientes por recibir."
+              : tab === "enviadas"
+                ? "No tienes ofertas pendientes por enviar."
+                : "Todavía no hay intercambios resueltos."
+          }
+        />
       )}
 
       <ul className="flex flex-col gap-4">
@@ -170,7 +177,13 @@ export function TradeInbox({ trades: initialTrades }: { trades: TradeWithDetails
                 </span>
               </div>
               {trade.otherParty && (
-                <SaveContactButton profile={trade.otherParty} alreadySaved={trade.otherPartyIsContact} />
+                <div className="flex items-center gap-2">
+                  <SaveContactButton profile={trade.otherParty} alreadySaved={trade.otherPartyIsContact} />
+                  <BlockUserButton
+                    profile={trade.otherParty}
+                    onBlocked={() => router.refresh()}
+                  />
+                </div>
               )}
             </div>
 
@@ -214,7 +227,7 @@ export function TradeInbox({ trades: initialTrades }: { trades: TradeWithDetails
                         type="button"
                         onClick={() => handleAccept(trade)}
                         disabled={pendingAction === trade.id}
-                        className="touch-manipulation rounded-full bg-marca-violeta px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+                        className="touch-manipulation rounded-full bg-marca-rojo px-3 py-2 text-xs font-bold text-marca-claro disabled:opacity-50"
                       >
                         Aceptar
                       </button>

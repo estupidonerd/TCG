@@ -57,7 +57,7 @@ export function CodesForm({ packTypes }: { packTypes: PackType[] }) {
         <FormField label="Tipo de sobre">
           <select name="pack_type_id" required defaultValue="" className={fieldInputClass}>
             <option value="" disabled>
-              Elegí un tipo de sobre
+              Elige un tipo de sobre
             </option>
             {packTypes.map((pack) => (
               <option key={pack.id} value={pack.id}>
@@ -97,7 +97,7 @@ export function CodesForm({ packTypes }: { packTypes: PackType[] }) {
 
         <FormField
           label="Etiqueta del lote"
-          hint="Opcional: si la dejás vacía, se genera una automática."
+          hint="Opcional: si la dejas vacía, se genera una automática."
         >
           <input type="text" name="batch_label" className={fieldInputClass} />
         </FormField>
@@ -120,7 +120,7 @@ export function CodesForm({ packTypes }: { packTypes: PackType[] }) {
           <button
             type="button"
             onClick={handleDownload}
-            className="w-fit rounded bg-marca-violeta px-4 py-2 text-sm font-semibold text-white"
+            className="w-fit rounded bg-marca-rojo px-4 py-2 text-sm font-semibold text-marca-claro"
           >
             Descargar CSV
           </button>

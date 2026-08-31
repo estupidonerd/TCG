@@ -1,15 +1,7 @@
 import type { Genre, Rarity, Trait } from "@/lib/supabase/types";
 import { RARITY_LABELS } from "@/lib/supabase/types";
+import { RARITY_ACCENT_CLASS } from "@/lib/supabase/rarity-colors";
 import { capitalizeFirst } from "@/lib/utils/capitalize";
-
-// Mapeo de color por rareza, único para todo el sitio: común=gris,
-// rara=rojo, épica=amarillo, legendaria=violeta.
-const RARITY_ACCENT: Record<Rarity, string> = {
-  comun: "border-marca-noche/30 bg-marca-noche/5 text-marca-noche",
-  rara: "border-marca-rojo bg-marca-rojo/10 text-marca-rojo",
-  epica: "border-marca-amarillo bg-marca-amarillo/20 text-marca-noche",
-  legendaria: "border-marca-violeta bg-marca-violeta/10 text-marca-violeta",
-};
 
 // Cómo un jugador va a ver una carta. La usa tanto el form de /admin/cards
 // (para previsualizar antes de guardar) como /coleccion/[slug] (el detalle
@@ -40,7 +32,7 @@ export function CardPreview({
 }) {
   return (
     <div
-      className={`w-full max-w-xs overflow-hidden rounded-xl border-2 bg-white shadow-sm ${RARITY_ACCENT[rarity]}`}
+      className={`w-full max-w-xs overflow-hidden rounded-xl border-2 bg-white shadow-sm ${RARITY_ACCENT_CLASS[rarity]}`}
     >
       {/* 2.5x3.5in / 63.5x88.9mm, el tamaño estándar de TCG (Magic/Pokémon/Yu-Gi-Oh). */}
       <div className="aspect-[5/7] w-full bg-marca-noche/10">

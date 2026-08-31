@@ -17,7 +17,7 @@ export function RedeemForm({ cardBackUrl }: { cardBackUrl: string | null }) {
     setError(null);
 
     if (code.replace(/-/g, "").length !== 12) {
-      setError("Ingresá los 12 caracteres del código.");
+      setError("Ingresa los 12 caracteres del código.");
       return;
     }
 
@@ -55,25 +55,29 @@ export function RedeemForm({ cardBackUrl }: { cardBackUrl: string | null }) {
   const isComplete = code.replace(/-/g, "").length === 12;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex w-full max-w-sm flex-col items-center gap-4"
-    >
-      {error && (
-        <p className="w-full rounded border border-marca-rojo/40 bg-marca-rojo/10 px-3 py-2 text-center text-sm text-marca-rojo">
-          {error}
-        </p>
-      )}
+    <div className="flex min-h-svh flex-col items-center justify-center gap-8 px-6 py-12">
+      <h1 className="text-3xl sm:text-4xl">Canjear código</h1>
 
-      <CodeInput value={code} onChange={setCode} disabled={loading} />
-
-      <button
-        type="submit"
-        disabled={loading || !isComplete}
-        className="w-full touch-manipulation rounded-xl bg-marca-violeta px-6 py-4 text-lg font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-full max-w-sm flex-col items-center gap-4"
       >
-        {loading ? "Canjeando…" : "Canjear código"}
-      </button>
-    </form>
+        {error && (
+          <p className="w-full rounded border border-marca-rojo/40 bg-marca-rojo/10 px-3 py-2 text-center text-sm text-marca-rojo">
+            {error}
+          </p>
+        )}
+
+        <CodeInput value={code} onChange={setCode} disabled={loading} />
+
+        <button
+          type="submit"
+          disabled={loading || !isComplete}
+          className="w-full touch-manipulation rounded-xl bg-marca-rojo px-6 py-4 text-lg font-bold text-marca-claro transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {loading ? "Canjeando…" : "Canjear código"}
+        </button>
+      </form>
+    </div>
   );
 }

@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { RARITY_LABELS } from "@/lib/supabase/types";
-import type { RedeemedCard } from "@/lib/supabase/types";
-import { RARITY_BORDER_CLASS } from "@/lib/supabase/rarity-colors";
+import type { RedeemedCard, Rarity } from "@/lib/supabase/types";
+import { RARITY_BORDER_CLASS, RARITY_HEX } from "@/lib/supabase/rarity-colors";
 
-// Piden brillo especial solo para rara y legendaria (no épica): se respeta
-// tal cual, es una decisión de diseño del juego, no un olvido nuestro.
-const GLOW_RARITIES = new Set(["rara", "legendaria"]);
+// Pulso de brillo una sola vez para rara/épica/legendaria, del color de su
+// propia rareza -- común se revela sin ningún efecto especial, solo el
+// giro normal. Nada de partículas, vibración ni nada que dependa de
+// sensores: es pura sombra + opacidad, y respeta prefers-reduced-motion.
+const GLOW_RARITIES = new Set<Rarity>(["rara", "epica", "legendaria"]);
 
 export function FlipCard({
   card,
@@ -24,7 +27,8 @@ export function FlipCard({
   reducedMotion: boolean;
   onFlip: () => void;
 }) {
-  const hasGlow = flipped && GLOW_RARITIES.has(card.rarity);
+  const [glowDone, setGlowDone] = useState(false);
+  const showGlow = flipped && !reducedMotion && !glowDone && GLOW_RARITIES.has(card.rarity);
 
   return (
     <motion.div
@@ -35,17 +39,13 @@ export function FlipCard({
       }
       className="flex flex-col gap-1"
     >
-      <div style={{ perspective: 1000 }}>
+      <div className="relative" style={{ perspective: 1000 }}>
         <button
           type="button"
           onClick={onFlip}
           disabled={flipped}
           aria-label={flipped ? `${card.name}, ${RARITY_LABELS[card.rarity]}` : "Tocar para revelar la carta"}
-          className={`relative aspect-[5/7] w-full touch-manipulation select-none rounded-xl ring-4 ring-transparent transition-all ${
-            hasGlow
-              ? "animate-pulse shadow-[0_0_24px_6px_var(--marca-amarillo)] ring-marca-amarillo"
-              : ""
-          }`}
+          className="relative aspect-[5/7] w-full touch-manipulation select-none rounded-xl"
         >
           <motion.div
             className="absolute inset-0"
@@ -91,9 +91,24 @@ export function FlipCard({
             </div>
           </motion.div>
         </button>
+
+        {/* Pulso de brillo: sin AnimatePresence a propósito (framer-motion
+            13.1.1 + React 19 no resuelve bien su exit, ver pack-opening.tsx)
+            -- se desmonta directo con setGlowDone al terminar, sin exit. */}
+        {showGlow && (
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-xl"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: [0, 0.9, 0], scale: [0.95, 1.05, 1] }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            onAnimationComplete={() => setGlowDone(true)}
+            style={{ boxShadow: `0 0 26px 8px ${RARITY_HEX[card.rarity]}` }}
+          />
+        )}
       </div>
 
-      <p className="min-h-[1.5em] text-center text-xs font-medium text-marca-noche/70">
+      <p className="min-h-[1.5em] text-center text-xs font-medium text-marca-claro/80">
         {flipped ? `${card.name} · ${RARITY_LABELS[card.rarity]}` : ""}
       </p>
     </motion.div>

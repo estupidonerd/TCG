@@ -17,8 +17,10 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   // /admin tiene su propia nav (AdminNav) -- este header es solo para las
-  // rutas de jugador.
-  if (loading || !user || pathname.startsWith("/admin")) return null;
+  // rutas de jugador. /baneado tampoco lo muestra: un jugador baneado no
+  // tiene que ver links a ninguna otra parte de la app, solo el botón de
+  // cerrar sesión que ya tiene esa pantalla.
+  if (loading || !user || pathname.startsWith("/admin") || pathname === "/baneado") return null;
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-marca-noche/5 bg-marca-claro px-4 py-3 [padding-left:max(1rem,env(safe-area-inset-left))] [padding-right:max(1rem,env(safe-area-inset-right))] [padding-top:max(0.75rem,env(safe-area-inset-top))] print:hidden sm:px-6">

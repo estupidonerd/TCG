@@ -16,26 +16,29 @@ const STAGGER_STEP = 0.02;
 export function CollectionCardTile({
   card,
   index,
+  reducedMotion,
 }: {
   card: CollectionCard;
   index: number;
+  reducedMotion: boolean;
 }) {
   const owned = card.quantity > 0;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16, scale: 0.95 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 16, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "0px 0px -40px 0px" }}
-      transition={{
-        delay: Math.min(index, MAX_STAGGER_INDEX) * STAGGER_STEP,
-        duration: 0.3,
-      }}
+      transition={
+        reducedMotion
+          ? { duration: 0 }
+          : { delay: Math.min(index, MAX_STAGGER_INDEX) * STAGGER_STEP, duration: 0.3 }
+      }
     >
       <Link href={`/coleccion/${card.slug}`} className="group block">
-        <div style={{ perspective: 600 }}>
+        <div style={{ perspective: reducedMotion ? undefined : 600 }}>
           <motion.div
-            whileHover={{ rotateX: 5, rotateY: -5, scale: 1.04 }}
+            whileHover={reducedMotion ? undefined : { rotateX: 5, rotateY: -5, scale: 1.04 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className={`relative aspect-[5/7] w-full overflow-hidden rounded-lg border-2 shadow-sm ${RARITY_BORDER_CLASS[card.rarity]}`}
           >

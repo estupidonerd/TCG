@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { CardSet } from "@/lib/supabase/types";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function AdminSetsPage() {
   const supabase = await createClient();
@@ -17,7 +18,7 @@ export default async function AdminSetsPage() {
         <h1 className="text-2xl">Expansiones</h1>
         <Link
           href="/admin/sets/new"
-          className="rounded bg-marca-violeta px-4 py-2 text-sm font-semibold text-white"
+          className="rounded bg-marca-rojo px-4 py-2 text-sm font-semibold text-marca-claro"
         >
           Nueva expansión
         </Link>
@@ -60,8 +61,8 @@ export default async function AdminSetsPage() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-marca-noche/50">
-                  Todavía no hay expansiones.
+                <td colSpan={5}>
+                  <EmptyState icon="📚" message="Todavía no hay expansiones." compact />
                 </td>
               </tr>
             )}

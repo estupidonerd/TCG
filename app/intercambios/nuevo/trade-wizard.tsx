@@ -8,7 +8,7 @@ import { profileLabel } from "@/lib/utils/profile-label";
 import type { PublicProfile } from "@/lib/supabase/types";
 import type { ContactWithProfile } from "@/app/contactos/page";
 
-type MyCard = PickableCard & { owned: number; committed: number };
+type MyCard = PickableCard & { owned: number; committed: number; publicQuantity: number };
 
 type Step = "recipient" | "offer" | "request" | "review";
 
@@ -83,15 +83,18 @@ export function TradeWizard({
   const myOfferMax = useMemo(() => {
     const map: Record<string, number> = {};
     for (const card of myCards) {
-      // -1: siempre te queda al menos 1 copia propia, nunca podés ofrecer
-      // la totalidad de lo que tenés.
-      map[card.id] = Math.max(0, card.owned - 1 - card.committed);
+      // El tope es cuánto marcaste como disponible para intercambio en tu
+      // colección (public_quantity, que ya tiene descontada la reserva de
+      // tus mazos y la regla de siempre de dejar al menos 1 copia propia)
+      // menos lo ya comprometido en otras ofertas pendientes.
+      map[card.id] = Math.max(0, card.publicQuantity - card.committed);
     }
     return map;
   }, [myCards]);
 
-  // Cartas con las que no hay nada para ofrecer (solo 1 copia, o todas ya
-  // comprometidas en otras ofertas pendientes) ni siquiera se muestran acá.
+  // Cartas con las que no hay nada para ofrecer (ninguna marcada como
+  // disponible para intercambio, o todas ya comprometidas en otras ofertas
+  // pendientes) ni siquiera se muestran acá.
   const offerableCards = useMemo(
     () => myCards.filter((card) => (myOfferMax[card.id] ?? 0) > 0),
     [myCards, myOfferMax],
@@ -164,7 +167,7 @@ export function TradeWizard({
 
       {step === "recipient" && (
         <div className="flex flex-col gap-4">
-          <h2 className="text-lg font-bold">¿Con quién querés intercambiar?</h2>
+          <h2 className="text-lg font-bold">¿Con quién quieres intercambiar?</h2>
 
           {contacts.length > 0 && (
             <ul className="flex flex-col gap-2">
@@ -244,7 +247,7 @@ export function TradeWizard({
                 return next;
               })
             }
-            emptyMessage="No tienes cartas disponibles para ofrecer (solo tienes 1 copia de cada una, o ya las comprometiste todas en otras ofertas)."
+            emptyMessage="No tienes cartas disponibles para ofrecer. Marca alguna como disponible para intercambio desde tu colección, o revisa si ya las comprometiste todas en otras ofertas."
           />
         </div>
       )}
@@ -332,7 +335,7 @@ export function TradeWizard({
               type="button"
               onClick={() => setStep("request")}
               disabled={offerCount === 0}
-              className="touch-manipulation rounded-xl bg-marca-violeta px-6 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className="touch-manipulation rounded-xl bg-marca-rojo px-6 py-3 text-sm font-bold text-marca-claro disabled:cursor-not-allowed disabled:opacity-40"
             >
               Continuar
             </button>
@@ -342,7 +345,7 @@ export function TradeWizard({
             <button
               type="button"
               onClick={() => setStep("review")}
-              className="touch-manipulation rounded-xl bg-marca-violeta px-6 py-3 text-sm font-bold text-white"
+              className="touch-manipulation rounded-xl bg-marca-rojo px-6 py-3 text-sm font-bold text-marca-claro"
             >
               {requestCount === 0 ? "Continuar sin pedir nada" : "Continuar"}
             </button>
@@ -353,7 +356,7 @@ export function TradeWizard({
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="touch-manipulation rounded-xl bg-marca-violeta px-6 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className="touch-manipulation rounded-xl bg-marca-rojo px-6 py-3 text-sm font-bold text-marca-claro disabled:cursor-not-allowed disabled:opacity-40"
             >
               {submitting ? "Enviando…" : "Enviar oferta"}
             </button>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { fieldInputClass } from "@/components/admin/form-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { RARITIES, RARITY_LABELS } from "@/lib/supabase/types";
 import type { Card, CardSet } from "@/lib/supabase/types";
 
@@ -36,7 +37,7 @@ export default async function AdminCardsPage({
         <h1 className="text-2xl">Cartas</h1>
         <Link
           href="/admin/cards/new"
-          className="rounded bg-marca-violeta px-4 py-2 text-sm font-semibold text-white"
+          className="rounded bg-marca-rojo px-4 py-2 text-sm font-semibold text-marca-claro"
         >
           Nueva carta
         </Link>
@@ -94,9 +95,9 @@ export default async function AdminCardsPage({
           </Link>
         ))}
         {(!cards || cards.length === 0) && (
-          <p className="col-span-full py-6 text-center text-sm text-marca-noche/50">
-            No hay cartas con esos filtros.
-          </p>
+          <div className="col-span-full">
+            <EmptyState icon="🃏" message="No hay cartas con esos filtros." compact />
+          </div>
         )}
       </div>
     </div>

@@ -67,7 +67,7 @@ export function PackForm({
         label="Imagen especial del sobre"
         name="image"
         initialPreviewUrl={initialPack?.image_url ?? null}
-        hint="Opcional: si no subís nada, /canjear usa la imagen base de /admin/ajustes."
+        hint="Opcional: si no subes nada, /canjear usa la imagen base de /admin/ajustes."
       />
 
       <fieldset className="flex flex-col gap-3 rounded-lg border border-marca-noche/10 p-4">
@@ -134,7 +134,7 @@ export function PackForm({
         ))}
         {sets.length === 0 && (
           <p className="text-xs text-marca-noche/50">
-            Creá una expansión primero.
+            Crea una expansión primero.
           </p>
         )}
       </fieldset>

@@ -22,6 +22,7 @@ export function CardDetail({
   cardBackUrl,
   quantity,
   publicQuantity,
+  deckReserved,
   prevSlug,
   nextSlug,
 }: {
@@ -31,11 +32,16 @@ export function CardDetail({
   cardBackUrl: string | null;
   quantity: number;
   publicQuantity: number;
+  deckReserved: number;
   prevSlug: string | null;
   nextSlug: string | null;
 }) {
   const [flipped, setFlipped] = useState(false);
   const owned = quantity > 0;
+  // Mismo criterio que set_card_public_quantity en el servidor: siempre
+  // queda privado el máximo entre 1 (la regla de siempre) y lo que reserve
+  // algún mazo para esta carta.
+  const maxPublicQuantity = Math.max(0, quantity - Math.max(1, deckReserved));
   const darkPanel = DARK_PANEL_RARITIES.has(card.rarity);
   const router = useRouter();
 
@@ -169,10 +175,10 @@ export function CardDetail({
                 </p>
 
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  {quantity > 1 ? (
+                  {maxPublicQuantity > 0 ? (
                     <TradeAvailabilityControl
                       cardId={card.id}
-                      quantity={quantity}
+                      maxPublicQuantity={maxPublicQuantity}
                       initialPublicQuantity={publicQuantity}
                       darkPanel={darkPanel}
                     />
@@ -183,7 +189,7 @@ export function CardDetail({
                   <div className="flex flex-wrap gap-2">
                     <Link
                       href={`/imprimir?carta=${card.slug}`}
-                      className="rounded-xl bg-marca-violeta px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                      className="rounded-xl bg-marca-rojo px-4 py-2.5 text-sm font-bold text-marca-claro transition-opacity hover:opacity-90"
                     >
                       Imprimir
                     </Link>
@@ -200,10 +206,18 @@ export function CardDetail({
                   </div>
                 </div>
 
-                {quantity > 1 && (
+                {maxPublicQuantity > 0 && (
                   <p className={`text-xs ${mutedTextClass}`}>
-                    Cuántas copias pueden pedirte otros jugadores en un intercambio. Siempre te
-                    queda al menos 1 privada.
+                    Cuántas copias pueden pedirte otros jugadores en un intercambio.{" "}
+                    {deckReserved > 0
+                      ? `Siempre te quedan ${Math.max(1, deckReserved)} privadas: la(s) que usa alguno de tus mazos.`
+                      : "Siempre te queda al menos 1 privada."}
+                  </p>
+                )}
+                {maxPublicQuantity === 0 && quantity > 0 && deckReserved > 0 && (
+                  <p className={`text-xs ${mutedTextClass}`}>
+                    Ahora mismo las {quantity} copias que tienes están reservadas por un mazo, así
+                    que ninguna está disponible para intercambio.
                   </p>
                 )}
               </div>

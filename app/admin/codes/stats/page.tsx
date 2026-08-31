@@ -1,6 +1,7 @@
 import { requireAdminOrRedirect } from "@/lib/admin/require-admin";
 import { getCodeBatchStats } from "../actions";
 import { BatchCard } from "./batch-card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function AdminCodesStatsPage() {
   // Esta página llama directo a una acción que usa el cliente service_role
@@ -19,9 +20,7 @@ export default async function AdminCodesStatsPage() {
           <BatchCard key={batch.batch_label} batch={batch} />
         ))}
         {batches.length === 0 && (
-          <p className="py-6 text-center text-sm text-marca-noche/50">
-            Todavía no se generó ningún lote de códigos.
-          </p>
+          <EmptyState icon="🎟️" message="Todavía no se generó ningún lote de códigos." compact />
         )}
       </div>
     </div>

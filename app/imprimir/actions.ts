@@ -26,7 +26,7 @@ export async function getPrintAssets(cardIds: string[]): Promise<PrintAssets> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Tenés que iniciar sesión.");
+  if (!user) throw new Error("Tienes que iniciar sesión.");
 
   if (cardIds.length === 0) return { cards: [], backUrl: null };
 

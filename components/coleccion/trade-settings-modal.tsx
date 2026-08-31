@@ -85,7 +85,7 @@ export function TradeSettingsModal({
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
-            className="touch-manipulation rounded-full border border-marca-noche/20 px-3 py-1.5 text-sm font-semibold text-marca-noche/60 hover:text-marca-noche"
+            className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-marca-noche/20 text-sm font-semibold text-marca-noche/60 hover:text-marca-noche"
           >
             ✕
           </button>

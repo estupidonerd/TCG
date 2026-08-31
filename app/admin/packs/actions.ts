@@ -55,7 +55,7 @@ function parsePackInput(formData: FormData) {
     throw new Error("La cantidad de cartas tiene que ser un entero positivo.");
   }
   if (allowedSetIds.length === 0) {
-    throw new Error("Elegí al menos una expansión permitida.");
+    throw new Error("Elige al menos una expansión permitida.");
   }
 
   const rarityWeights: Record<string, number> = {};

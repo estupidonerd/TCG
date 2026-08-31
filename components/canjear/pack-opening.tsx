@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
+import { usePackOpening } from "@/components/providers/pack-opening-provider";
 import { RARITY_LABELS } from "@/lib/supabase/types";
 import type { RedeemedCard, TradeDefault } from "@/lib/supabase/types";
 import { FlipCard } from "./flip-card";
@@ -26,6 +27,14 @@ export function PackOpening({
 }) {
   const router = useRouter();
   const reducedMotion = usePrefersReducedMotion();
+  const { setIsOpeningPack } = usePackOpening();
+
+  // El botón flotante de feedback se esconde mientras esta pantalla está
+  // montada, para no taparle el botón de "Toca para abrir" ni el resumen.
+  useEffect(() => {
+    setIsOpeningPack(true);
+    return () => setIsOpeningPack(false);
+  }, [setIsOpeningPack]);
 
   const [phase, setPhase] = useState<Phase>(() =>
     reducedMotion ? "cards" : "envelope",
@@ -55,12 +64,15 @@ export function PackOpening({
   const allFlipped = flipped.size === cards.length;
 
   return (
-    <div className="flex w-full max-w-2xl flex-col items-center gap-6">
+    // Momento inmersivo (regla de marca): fondo #000021 a pantalla completa
+    // mientras se abre el sobre, en vez del fondo claro general de la app.
+    <div className="flex min-h-svh w-full flex-col items-center gap-6 bg-marca-noche px-6 py-12 text-marca-claro">
+      <div className="flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-6">
       {phase !== "summary" && (
         <button
           type="button"
           onClick={skip}
-          className="touch-manipulation self-end text-sm font-medium text-marca-noche/50 hover:text-marca-noche"
+          className="touch-manipulation self-end text-sm font-medium text-marca-claro/60 hover:text-marca-claro"
         >
           Saltear
         </button>
@@ -121,7 +133,7 @@ export function PackOpening({
               </span>
             )}
             <span className="text-sm font-bold uppercase tracking-wide">
-              Tocá para abrir
+              Toca para abrir
             </span>
           </div>
         </motion.button>
@@ -152,7 +164,7 @@ export function PackOpening({
         <button
           type="button"
           onClick={() => setPhase("summary")}
-          className="touch-manipulation rounded-xl bg-marca-violeta px-6 py-3 font-bold text-white"
+          className="touch-manipulation rounded-xl bg-marca-rojo px-6 py-3 font-bold text-marca-claro"
         >
           Ver resumen
         </button>
@@ -192,20 +204,21 @@ export function PackOpening({
             <button
               type="button"
               onClick={() => router.push("/coleccion")}
-              className="touch-manipulation rounded-xl bg-marca-violeta px-6 py-3 font-bold text-white"
+              className="touch-manipulation rounded-xl bg-marca-rojo px-6 py-3 font-bold text-marca-claro"
             >
               Ir a mi colección
             </button>
             <button
               type="button"
               onClick={onReset}
-              className="touch-manipulation rounded-xl border border-marca-noche/20 px-6 py-3 font-semibold text-marca-noche"
+              className="touch-manipulation rounded-xl border border-marca-claro/30 px-6 py-3 font-semibold text-marca-claro hover:bg-marca-claro/10"
             >
               Canjear otro código
             </button>
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

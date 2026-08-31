@@ -36,6 +36,7 @@ export default async function CardDetailPage({
     { data: allCards },
     { data: sets },
     { data: ownedRows },
+    { data: deckCardRows },
   ] = await Promise.all([
     typedCard.genre_id
       ? supabase
@@ -75,7 +76,16 @@ export default async function CardDetailPage({
     // user_cards solo tiene filas para cartas que el usuario tiene (quantity
     // siempre > 0 por constraint), así que con que exista la fila alcanza.
     supabase.from("user_cards").select("card_id").eq("user_id", user!.id),
+    // Cuánto de ESTA carta reserva alguno de mis mazos (RLS ya limita
+    // deck_cards a mazos propios) -- el máximo entre mazos, no la suma,
+    // mismo criterio que save_deck/set_card_public_quantity en el servidor.
+    supabase.from("deck_cards").select("quantity").eq("card_id", typedCard.id),
   ]);
+
+  const deckReserved = ((deckCardRows as { quantity: number }[] | null) ?? []).reduce(
+    (max, row) => Math.max(max, row.quantity),
+    0,
+  );
 
   // Anterior/siguiente navegan solo entre las conseguidas, en el mismo
   // orden que la grilla (expansión por released_at, adentro por
@@ -113,6 +123,7 @@ export default async function CardDetailPage({
       cardBackUrl={(settings as GameSettings | null)?.card_back_screen_url ?? null}
       quantity={userCard?.quantity ?? 0}
       publicQuantity={userCard?.public_quantity ?? 0}
+      deckReserved={deckReserved}
       prevSlug={prevSlug}
       nextSlug={nextSlug}
     />

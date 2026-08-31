@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { RARITY_LABELS } from "@/lib/supabase/types";
 import type { PackType } from "@/lib/supabase/types";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function AdminPacksPage() {
   const supabase = await createClient();
@@ -18,7 +19,7 @@ export default async function AdminPacksPage() {
         <h1 className="text-2xl">Sobres</h1>
         <Link
           href="/admin/packs/new"
-          className="rounded bg-marca-violeta px-4 py-2 text-sm font-semibold text-white"
+          className="rounded bg-marca-rojo px-4 py-2 text-sm font-semibold text-marca-claro"
         >
           Nuevo tipo de sobre
         </Link>
@@ -52,9 +53,7 @@ export default async function AdminPacksPage() {
           </Link>
         ))}
         {rows.length === 0 && (
-          <p className="py-6 text-center text-sm text-marca-noche/50">
-            Todavía no hay tipos de sobre.
-          </p>
+          <EmptyState icon="📦" message="Todavía no hay tipos de sobre." compact />
         )}
       </div>
     </div>

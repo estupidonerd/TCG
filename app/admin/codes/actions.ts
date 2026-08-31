@@ -33,7 +33,7 @@ export async function generateCodeBatch(
   const batchLabelInput = String(formData.get("batch_label") ?? "").trim();
   const expiresAt = String(formData.get("expires_at") ?? "").trim();
 
-  if (!packTypeId) throw new Error("Elegí un tipo de sobre.");
+  if (!packTypeId) throw new Error("Elige un tipo de sobre.");
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) {
     throw new Error(`La cantidad tiene que ser un entero entre 1 y ${MAX_QUANTITY}.`);
   }
@@ -69,7 +69,7 @@ export async function generateCodeBatch(
   if (error) {
     throw new Error(
       error.code === "23505"
-        ? "Colisión al azar generando un código (extremadamente improbable): reintentá generar el lote."
+        ? "Colisión al azar generando un código (extremadamente improbable): intenta generar el lote de nuevo."
         : error.message,
     );
   }
@@ -85,9 +85,11 @@ export async function generateCodeBatch(
 }
 
 export type CodeDetail = {
+  id: string;
   code: string;
   uses_count: number;
   max_uses: number;
+  is_active: boolean;
 };
 
 export async function getBatchCodes(batchLabel: string): Promise<CodeDetail[]> {
@@ -95,11 +97,77 @@ export async function getBatchCodes(batchLabel: string): Promise<CodeDetail[]> {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("codes")
-    .select("code, uses_count, max_uses")
+    .select("id, code, uses_count, max_uses, is_active")
     .eq("batch_label", batchLabel)
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
   return data ?? [];
+}
+
+// Inhabilitar es siempre seguro (redeem_code ya chequea is_active) y
+// reversible. Sirve tanto para códigos nunca usados como ya canjeados.
+export async function setCodeActive(codeId: string, isActive: boolean): Promise<void> {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("codes").update({ is_active: isActive }).eq("id", codeId);
+  if (error) throw new Error(error.message);
+}
+
+// Borrar un código ya canjeado violaría la FK de redemptions.code_id (no
+// tiene on delete cascade/set null a propósito: no queremos perder el
+// historial de canjes). Se distingue ese caso con un mensaje claro en vez
+// de un error crudo de Postgres.
+export async function deleteCode(codeId: string): Promise<void> {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("codes").delete().eq("id", codeId);
+  if (error) {
+    throw new Error(
+      error.code === "23503"
+        ? "No se puede borrar: este código ya fue canjeado al menos una vez. Inhabilítalo en cambio."
+        : error.message,
+    );
+  }
+}
+
+export async function setBatchActive(batchLabel: string, isActive: boolean): Promise<void> {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("codes")
+    .update({ is_active: isActive })
+    .eq("batch_label", batchLabel);
+  if (error) throw new Error(error.message);
+}
+
+export type DeleteBatchResult = { deletedCount: number; disabledCount: number };
+
+// Borra del lote los códigos que nunca se usaron; los ya canjeados no se
+// pueden borrar (ver deleteCode), así que en cambio se inhabilitan, para
+// que "borrar lote" igual deje todo el lote sin poder canjearse.
+export async function deleteBatch(batchLabel: string): Promise<DeleteBatchResult> {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { data: codes, error: fetchError } = await admin
+    .from("codes")
+    .select("id, uses_count")
+    .eq("batch_label", batchLabel);
+  if (fetchError) throw new Error(fetchError.message);
+
+  const unusedIds = (codes ?? []).filter((c) => c.uses_count === 0).map((c) => c.id);
+  const usedIds = (codes ?? []).filter((c) => c.uses_count > 0).map((c) => c.id);
+
+  if (unusedIds.length > 0) {
+    const { error } = await admin.from("codes").delete().in("id", unusedIds);
+    if (error) throw new Error(error.message);
+  }
+  if (usedIds.length > 0) {
+    const { error } = await admin.from("codes").update({ is_active: false }).in("id", usedIds);
+    if (error) throw new Error(error.message);
+  }
+
+  return { deletedCount: unusedIds.length, disabledCount: usedIds.length };
 }
 
 type CodeStatsRow = {
@@ -107,6 +175,7 @@ type CodeStatsRow = {
   pack_type_id: string;
   max_uses: number;
   uses_count: number;
+  is_active: boolean;
   expires_at: string | null;
   created_at: string;
   pack_types: { name: string } | null;
@@ -119,7 +188,7 @@ export async function getCodeBatchStats(): Promise<CodeBatchStats[]> {
   const { data, error } = await admin
     .from("codes")
     .select(
-      "batch_label, pack_type_id, max_uses, uses_count, expires_at, created_at, pack_types(name)",
+      "batch_label, pack_type_id, max_uses, uses_count, is_active, expires_at, created_at, pack_types(name)",
     )
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
@@ -136,6 +205,7 @@ export async function getCodeBatchStats(): Promise<CodeBatchStats[]> {
       existing.total_max_uses += row.max_uses;
       existing.total_uses_count += row.uses_count;
       if (row.uses_count >= row.max_uses) existing.fully_redeemed_codes += 1;
+      if (row.is_active) existing.active_codes += 1;
     } else {
       groups.set(key, {
         batch_label: key,
@@ -145,6 +215,7 @@ export async function getCodeBatchStats(): Promise<CodeBatchStats[]> {
         total_max_uses: row.max_uses,
         total_uses_count: row.uses_count,
         fully_redeemed_codes: row.uses_count >= row.max_uses ? 1 : 0,
+        active_codes: row.is_active ? 1 : 0,
         expires_at: row.expires_at,
         created_at: row.created_at,
       });

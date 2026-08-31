@@ -8,6 +8,8 @@ export type Profile = {
   created_at: string;
   is_admin: boolean;
   trade_default: TradeDefault;
+  has_seen_welcome: boolean;
+  banned_until: string | null;
 };
 
 export type Rarity = "comun" | "rara" | "epica" | "legendaria";
@@ -123,6 +125,7 @@ export type CodeBatchStats = {
   total_max_uses: number;
   total_uses_count: number;
   fully_redeemed_codes: number;
+  active_codes: number;
   expires_at: string | null;
   created_at: string;
 };
@@ -162,5 +165,43 @@ export type Contact = {
   user_id: string;
   contact_user_id: string;
   nickname: string | null;
+  created_at: string;
+};
+
+export type Deck = {
+  id: string;
+  user_id: string;
+  name: string;
+  is_complete: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DeckCard = {
+  deck_id: string;
+  card_id: string;
+  quantity: number;
+};
+
+export type FeedbackType = "falla" | "sugerencia" | "otro";
+
+export const FEEDBACK_TYPE_LABELS: Record<FeedbackType, string> = {
+  falla: "Falla",
+  sugerencia: "Sugerencia",
+  otro: "Otro",
+};
+
+export type Feedback = {
+  id: string;
+  user_id: string | null;
+  type: FeedbackType;
+  page_path: string;
+  message: string;
+  created_at: string;
+};
+
+export type BlockedUser = {
+  blocker_id: string;
+  blocked_id: string;
   created_at: string;
 };

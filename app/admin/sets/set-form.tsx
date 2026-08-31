@@ -56,7 +56,7 @@ export function SetForm({ initialSet }: { initialSet?: CardSet }) {
 
       <FormField
         label="Slug"
-        hint="Se usa en URLs. Se autogenera del nombre si no lo tocás."
+        hint="Se usa en URLs. Se autogenera del nombre si no lo tocas."
       >
         <input
           type="text"

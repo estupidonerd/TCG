@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/components/providers/user-provider";
+import { BlockUserButton } from "@/components/trades/block-user-button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { profileLabel } from "@/lib/utils/profile-label";
 import type { ContactWithProfile } from "./page";
 
@@ -55,7 +57,7 @@ export function ContactsView({ contacts: initialContacts }: { contacts: ContactW
         <button
           type="button"
           onClick={() => setShowAddByCode((v) => !v)}
-          className="touch-manipulation rounded-xl bg-marca-violeta px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+          className="touch-manipulation rounded-xl bg-marca-rojo px-4 py-2.5 text-sm font-bold text-marca-claro transition-opacity hover:opacity-90"
         >
           Agregar por código
         </button>
@@ -80,11 +82,14 @@ export function ContactsView({ contacts: initialContacts }: { contacts: ContactW
       />
 
       {filtered.length === 0 && (
-        <p className="py-12 text-center text-sm text-marca-noche/50">
-          {contacts.length === 0
-            ? "Todavía no agregaste ningún amigo."
-            : "No hay amigos que coincidan con la búsqueda."}
-        </p>
+        <EmptyState
+          icon="👥"
+          message={
+            contacts.length === 0
+              ? "Todavía no agregaste ningún amigo."
+              : "No hay amigos que coincidan con la búsqueda."
+          }
+        />
       )}
 
       <ul className="flex flex-col gap-3">
@@ -143,11 +148,11 @@ export function ContactsView({ contacts: initialContacts }: { contacts: ContactW
               </div>
 
               {!isEditing && (
-                <div className="flex gap-2 sm:ml-auto sm:shrink-0">
+                <div className="flex flex-wrap items-center gap-2 sm:ml-auto sm:shrink-0">
                   <button
                     type="button"
                     onClick={() => router.push(`/intercambios/nuevo?con=${contact.contact_user_id}`)}
-                    className="flex-1 touch-manipulation rounded-full bg-marca-violeta px-3 py-2.5 text-xs font-bold text-white transition-opacity hover:opacity-90 sm:flex-none"
+                    className="flex-1 touch-manipulation rounded-full bg-marca-rojo px-3 py-2.5 text-xs font-bold text-marca-claro transition-opacity hover:opacity-90 sm:flex-none"
                   >
                     Ofrecer intercambio
                   </button>
@@ -161,6 +166,15 @@ export function ContactsView({ contacts: initialContacts }: { contacts: ContactW
                   >
                     Quitar
                   </button>
+
+                  {contact.profile && (
+                    <BlockUserButton
+                      profile={contact.profile}
+                      onBlocked={() =>
+                        setContacts((prev) => prev.filter((c) => c.id !== contact.id))
+                      }
+                    />
+                  )}
                 </div>
               )}
             </li>
@@ -170,7 +184,7 @@ export function ContactsView({ contacts: initialContacts }: { contacts: ContactW
 
       {user && (
         <p className="text-center text-xs text-marca-noche/40">
-          También podés agregar amigos directo desde tus intercambios.
+          También puedes agregar amigos directo desde tus intercambios.
         </p>
       )}
     </div>
@@ -285,7 +299,7 @@ function AddByCodeForm({
     if (insertError || !inserted) {
       setError(
         insertError?.code === "23505"
-          ? "Ya tenés a ese jugador en tus amigos."
+          ? "Ya tienes a ese jugador en tus amigos."
           : "No se pudo agregar el amigo.",
       );
       return;
@@ -325,7 +339,7 @@ function AddByCodeForm({
           type="button"
           onClick={handleSubmit}
           disabled={pending || code.trim().length !== 8}
-          className="flex-1 touch-manipulation rounded-lg bg-marca-violeta px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex-1 touch-manipulation rounded-lg bg-marca-rojo px-4 py-2.5 text-sm font-bold text-marca-claro transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {pending ? "Buscando…" : "Agregar"}
         </button>

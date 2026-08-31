@@ -5,6 +5,8 @@ import { RARITIES, RARITY_LABELS } from "@/lib/supabase/types";
 import type { CardSet, CollectionCard, Genre, Rarity, Trait, TradeDefault } from "@/lib/supabase/types";
 import { CollectionCardTile } from "@/components/coleccion/collection-card-tile";
 import { TradeSettingsModal } from "@/components/coleccion/trade-settings-modal";
+import { EmptyState } from "@/components/ui/empty-state";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
 
 type OwnershipFilter = "todas" | "conseguidas" | "faltantes";
 
@@ -24,6 +26,7 @@ export function CollectionGrid({
   traits: Trait[];
   initialTradeDefault: TradeDefault;
 }) {
+  const reducedMotion = usePrefersReducedMotion();
   const [showTradeSettings, setShowTradeSettings] = useState(false);
   const [expansionFilter, setExpansionFilter] = useState("");
   const [rarityFilter, setRarityFilter] = useState<Rarity | "">("");
@@ -191,14 +194,12 @@ export function CollectionGrid({
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {filteredCards.map((card, index) => (
-          <CollectionCardTile key={card.id} card={card} index={index} />
+          <CollectionCardTile key={card.id} card={card} index={index} reducedMotion={reducedMotion} />
         ))}
       </div>
 
       {filteredCards.length === 0 && (
-        <p className="py-12 text-center text-sm text-marca-noche/50">
-          No hay cartas que coincidan con los filtros.
-        </p>
+        <EmptyState icon="🔍" message="No hay cartas que coincidan con los filtros." />
       )}
 
       {showTradeSettings && (

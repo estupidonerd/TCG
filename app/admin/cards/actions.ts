@@ -35,11 +35,11 @@ function parseCardFields(formData: FormData) {
   const scoreRaw = String(formData.get("score") ?? "").trim();
 
   if (!name) throw new Error("El nombre es obligatorio.");
-  if (!setId) throw new Error("Elegí una expansión.");
+  if (!setId) throw new Error("Elige una expansión.");
   if (!RARITIES.includes(rarity)) throw new Error("Rareza inválida.");
   if (!Number.isFinite(sortOrder)) throw new Error("El orden tiene que ser un número.");
-  if (!genreId) throw new Error("Elegí un Género.");
-  if (!traitId) throw new Error("Elegí un Rasgo.");
+  if (!genreId) throw new Error("Elige un Género.");
+  if (!traitId) throw new Error("Elige un Rasgo.");
   if (!Number.isInteger(power) || power < 0 || power > 10) {
     throw new Error("Poder tiene que ser un entero entre 0 y 10.");
   }

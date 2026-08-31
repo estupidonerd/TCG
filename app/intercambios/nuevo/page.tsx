@@ -28,7 +28,10 @@ export default async function NuevoIntercambioPage({
       .select("id, user_id, contact_user_id, nickname, created_at")
       .eq("user_id", user!.id)
       .order("created_at", { ascending: false }),
-    supabase.from("user_cards").select("card_id, quantity").eq("user_id", user!.id),
+    supabase
+      .from("user_cards")
+      .select("card_id, quantity, public_quantity")
+      .eq("user_id", user!.id),
     supabase
       .from("cards")
       .select("id, set_id, slug, name, description, rarity, image_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom")
@@ -52,10 +55,9 @@ export default async function NuevoIntercambioPage({
   const orderedCards = sortCardsBySet((cards as Card[] | null) ?? [], typedSets);
 
   const ownedQuantityByCard = new Map(
-    ((myUserCards as { card_id: string; quantity: number }[] | null) ?? []).map((r) => [
-      r.card_id,
-      r.quantity,
-    ]),
+    ((myUserCards as { card_id: string; quantity: number; public_quantity: number }[] | null) ?? []).map(
+      (r) => [r.card_id, { quantity: r.quantity, public_quantity: r.public_quantity }],
+    ),
   );
 
   const committedByCard = new Map<string, number>();
@@ -64,14 +66,18 @@ export default async function NuevoIntercambioPage({
   }
 
   const myCards = orderedCards
-    .filter((c) => (ownedQuantityByCard.get(c.id) ?? 0) > 0)
+    .filter((c) => (ownedQuantityByCard.get(c.id)?.quantity ?? 0) > 0)
     .map((c) => ({
       id: c.id,
       name: c.name,
       rarity: c.rarity,
       image_front_url: c.image_front_url,
-      owned: ownedQuantityByCard.get(c.id) ?? 0,
+      owned: ownedQuantityByCard.get(c.id)?.quantity ?? 0,
       committed: committedByCard.get(c.id) ?? 0,
+      // Ya tiene descontada la reserva de mazo en origen (ver
+      // set_card_public_quantity/set_all_cards_public): es el único límite
+      // real que importa acá para ofrecer.
+      publicQuantity: ownedQuantityByCard.get(c.id)?.public_quantity ?? 0,
     }));
 
   const catalogById = new Map(orderedCards.map((c) => [c.id, c]));

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/components/providers/user-provider";
 import { createClient } from "@/lib/supabase/client";
@@ -77,7 +78,7 @@ export function UserMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Menú de usuario"
-        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-marca-noche bg-marca-violeta text-sm font-bold text-white shadow-sm"
+        className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 border-marca-noche bg-marca-violeta text-sm font-bold text-white shadow-sm"
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- avatar remoto (Google), sin necesidad de optimización de next/image
@@ -116,6 +117,14 @@ export function UserMenu() {
             </button>
           )}
 
+          <Link
+            href="/ajustes"
+            onClick={() => setOpen(false)}
+            className="mt-3 block w-full rounded border border-black/10 bg-white px-3 py-2 text-center text-sm font-semibold text-marca-noche transition-colors hover:bg-black/[.03]"
+          >
+            Ajustes
+          </Link>
+
           <button
             type="button"
             onClick={handleLogout}
@@ -124,6 +133,14 @@ export function UserMenu() {
           >
             {signingOut ? "Cerrando sesión…" : "Cerrar sesión"}
           </button>
+
+          <Link
+            href="/cuenta/eliminar"
+            onClick={() => setOpen(false)}
+            className="mt-2 block w-full text-center text-xs font-semibold text-marca-noche/40 hover:text-marca-rojo"
+          >
+            Eliminar cuenta
+          </Link>
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { RARITY_BORDER_CLASS } from "@/lib/supabase/rarity-colors";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Rarity } from "@/lib/supabase/types";
 
 export type PickableCard = {
@@ -44,7 +45,7 @@ export function CardPickerGrid({
   }, [cards, query]);
 
   if (cards.length === 0) {
-    return <p className="py-8 text-center text-sm text-marca-noche/50">{emptyMessage}</p>;
+    return <EmptyState icon="🃏" message={emptyMessage} />;
   }
 
   return (
@@ -60,11 +61,9 @@ export function CardPickerGrid({
       )}
 
       {filteredCards.length === 0 ? (
-        <p className="py-8 text-center text-sm text-marca-noche/50">
-          Ninguna carta coincide con &quot;{query}&quot;.
-        </p>
+        <EmptyState icon="🔍" message={`Ninguna carta coincide con "${query}".`} />
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5">
           {filteredCards.map((card) => {
             const max = maxByCard[card.id] ?? 0;
             const qty = selected.get(card.id) ?? 0;
@@ -107,7 +106,7 @@ export function CardPickerGrid({
                       type="button"
                       onClick={() => onChange(card.id, Math.max(0, qty - 1))}
                       disabled={qty === 0}
-                      className="flex h-8 w-8 shrink-0 touch-manipulation items-center justify-center rounded-full border border-marca-noche/20 text-lg font-bold leading-none disabled:cursor-not-allowed disabled:opacity-30"
+                      className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-marca-noche/20 text-lg font-bold leading-none disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label={`Restar ${card.name}`}
                     >
                       −
@@ -117,7 +116,7 @@ export function CardPickerGrid({
                       type="button"
                       onClick={() => onChange(card.id, Math.min(max, qty + 1))}
                       disabled={qty >= max}
-                      className="flex h-8 w-8 shrink-0 touch-manipulation items-center justify-center rounded-full border border-marca-noche/20 text-lg font-bold leading-none disabled:cursor-not-allowed disabled:opacity-30"
+                      className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-marca-noche/20 text-lg font-bold leading-none disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label={`Sumar ${card.name}`}
                     >
                       +

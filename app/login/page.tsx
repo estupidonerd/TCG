@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { safeRedirectPath } from "@/lib/utils/safe-redirect";
 import { GoogleLoginButton } from "@/components/auth/google-login-button";
+import { DiscordLoginButton } from "@/components/auth/discord-login-button";
+import { TwitchLoginButton } from "@/components/auth/twitch-login-button";
 
 export default async function LoginPage({
   searchParams,
@@ -28,17 +30,21 @@ export default async function LoginPage({
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl">Estúpido Nerd TCG</h1>
           <p className="text-sm font-light text-marca-noche/70">
-            Iniciá sesión para armar tu colección
+            Inicia sesión para armar tu colección
           </p>
         </div>
 
         {error && (
           <p className="w-full rounded border border-marca-rojo/40 bg-marca-rojo/10 px-4 py-2 text-sm text-marca-rojo">
-            No pudimos completar el login. Probá de nuevo.
+            No pudimos completar el login. Intenta de nuevo.
           </p>
         )}
 
-        <GoogleLoginButton next={next} />
+        <div className="flex w-full flex-col gap-3">
+          <GoogleLoginButton next={next} />
+          <DiscordLoginButton next={next} />
+          <TwitchLoginButton next={next} />
+        </div>
       </div>
     </main>
   );

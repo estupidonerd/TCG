@@ -10,19 +10,19 @@ import { createClient } from "@/lib/supabase/client";
 // también agrupa ahí los botones de Imprimir/Ofrecer.
 export function TradeAvailabilityControl({
   cardId,
-  quantity,
+  maxPublicQuantity,
   initialPublicQuantity,
   darkPanel,
 }: {
   cardId: string;
-  quantity: number;
+  maxPublicQuantity: number;
   initialPublicQuantity: number;
   darkPanel: boolean;
 }) {
   const [publicQuantity, setPublicQuantity] = useState(initialPublicQuantity);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const max = quantity - 1;
+  const max = maxPublicQuantity;
 
   const update = async (next: number) => {
     if (next < 0 || next > max || next === publicQuantity) return;
@@ -52,7 +52,7 @@ export function TradeAvailabilityControl({
           onClick={() => update(publicQuantity - 1)}
           disabled={pending || publicQuantity === 0}
           aria-label="Restar carta disponible para intercambio"
-          className={`flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border text-lg font-bold leading-none disabled:cursor-not-allowed disabled:opacity-30 ${buttonBorderClass}`}
+          className={`flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border text-lg font-bold leading-none disabled:cursor-not-allowed disabled:opacity-30 ${buttonBorderClass}`}
         >
           −
         </button>
@@ -64,7 +64,7 @@ export function TradeAvailabilityControl({
           onClick={() => update(publicQuantity + 1)}
           disabled={pending || publicQuantity >= max}
           aria-label="Sumar carta disponible para intercambio"
-          className={`flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border text-lg font-bold leading-none disabled:cursor-not-allowed disabled:opacity-30 ${buttonBorderClass}`}
+          className={`flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border text-lg font-bold leading-none disabled:cursor-not-allowed disabled:opacity-30 ${buttonBorderClass}`}
         >
           +
         </button>
