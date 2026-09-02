@@ -266,7 +266,8 @@ export async function updateCardTemplate(formData: FormData) {
       angulo: parsePercent(formData, "zona_nombre_angulo"),
     },
     "tamaño_iconos": parsePercent(formData, "tamano_iconos"),
-    "tamaño_poder_score": parsePercent(formData, "tamano_poder_score"),
+    "tamaño_poder": parsePercent(formData, "tamano_poder"),
+    "tamaño_score": parsePercent(formData, "tamano_score"),
     "altura_poder_score": parsePercent(formData, "altura_poder_score"),
     icono_genero: {
       offset_x: parsePercent(formData, "icono_genero_offset_x"),

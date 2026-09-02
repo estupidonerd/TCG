@@ -250,9 +250,10 @@ export function CardTemplateForm({
               Poder y Puntaje
             </legend>
             <div className="grid grid-cols-2 gap-4">
-              <SliderField label="Tamaño (compartido)" name="tamano_poder_score" min={1} max={30} step={0.5} value={template["tamaño_poder_score"]} onChange={(v) => update("tamaño_poder_score", v)} />
-              <SliderField label="Altura (compartida)" name="altura_poder_score" min={50} max={200} step={5} value={template["altura_poder_score"]} onChange={(v) => update("altura_poder_score", v)} />
+              <SliderField label="Tamaño Poder" name="tamano_poder" min={1} max={30} step={0.5} value={template["tamaño_poder"]} onChange={(v) => update("tamaño_poder", v)} />
+              <SliderField label="Tamaño Puntaje" name="tamano_score" min={1} max={30} step={0.5} value={template["tamaño_score"]} onChange={(v) => update("tamaño_score", v)} />
             </div>
+            <SliderField label="Altura (compartida)" name="altura_poder_score" min={50} max={200} step={5} value={template["altura_poder_score"]} onChange={(v) => update("altura_poder_score", v)} />
             <p className="text-xs text-marca-noche/60">
               Altura estira o achica solo lo alto de los números (100 = normal), sin cambiar su
               ancho. No aplica al nombre.

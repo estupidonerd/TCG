@@ -58,11 +58,13 @@ export type Trait = {
 
 // Plantilla general de composición del arte de carta (game_settings.card_template).
 // Todo valor espacial es porcentaje relativo al tamaño de la carta, nunca
-// píxeles fijos, para que escale igual en pantalla e impresión. Tamaño va
-// compartido de a pares (un tamaño para los dos íconos, otro para
-// Poder/Puntaje); cada uno de los 4 elementos tiene su propio offset
-// independiente, medido desde su esquina de anclaje (género: arriba-izq,
-// rasgo: abajo-der, poder: arriba-der, score: abajo-izq).
+// píxeles fijos, para que escale igual en pantalla e impresión. El tamaño de
+// los íconos va compartido de a par (un tamaño para los dos); Poder y
+// Puntaje tienen cada uno su propio tamaño (no siempre se leen igual de
+// bien al mismo tamaño). Cada uno de los 4 elementos (íconos, Poder,
+// Puntaje) tiene su propio offset independiente, medido desde su esquina de
+// anclaje (género: arriba-izq, rasgo: abajo-der, poder: arriba-der, score:
+// abajo-izq).
 export type CardTemplateOffset = { offset_x: number; offset_y: number };
 
 export type CardTemplate = {
@@ -78,7 +80,8 @@ export type CardTemplate = {
     angulo: number;
   };
   "tamaño_iconos": number;
-  "tamaño_poder_score": number;
+  "tamaño_poder": number;
+  "tamaño_score": number;
   // Estiramiento vertical de Poder/Puntaje, en % (100 = normal), sin tocar
   // el ancho -- solo la altura de esos dos números, nunca del nombre.
   "altura_poder_score": number;

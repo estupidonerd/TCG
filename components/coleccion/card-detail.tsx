@@ -13,6 +13,7 @@ import {
   DARK_PANEL_RARITIES,
 } from "@/lib/supabase/rarity-colors";
 import { capitalizeFirst } from "@/lib/utils/capitalize";
+import { formatScore } from "@/lib/utils/format-score";
 import { CardArtOverlay } from "@/components/cards/card-art-overlay";
 import { TradeAvailabilityControl } from "./trade-availability-control";
 
@@ -289,7 +290,7 @@ export function CardDetail({
                   Puntaje
                 </p>
                 <p className="text-3xl font-bold leading-none">
-                  {card.score !== null ? card.score.toFixed(1) : "X"}
+                  {card.score !== null ? formatScore(card.score) : "X"}
                 </p>
               </div>
             </div>

@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import type { CardTemplate } from "@/lib/supabase/types";
 import { useFitText } from "@/lib/hooks/use-fit-text";
+import { formatScore } from "@/lib/utils/format-score";
 
 export type CardArtOverlayVariant = "coleccion" | "impresion" | "postal";
 
@@ -123,34 +124,39 @@ export function CardArtOverlay({
 
           {/* Score: siempre visible, abajo-izquierda, color del Género. Sin
               sombra -- el color se elige a mano para que ya se lea bien.
-              Sin puntaje asignado, muestra "X" en vez de no mostrar nada. */}
+              Sin puntaje asignado, muestra "X" en vez de no mostrar nada.
+              Centrado en el punto del offset (translateX -50%) en vez de
+              anclado por el borde: "X", "1", "10" y "9.9" tienen ancho
+              distinto, así que anclar por el borde los dejaba corridos
+              unos respecto de otros según cuántos caracteres tuvieran. */}
           {genreColor && (
             <span
               className="absolute font-card-name font-black leading-none"
               style={{
                 bottom: `${template.score.offset_y}%`,
                 left: `${template.score.offset_x}%`,
-                fontSize: `${template["tamaño_poder_score"]}cqw`,
+                fontSize: `${template["tamaño_score"]}cqw`,
                 color: genreColor,
-                transform: `scaleY(${(template["altura_poder_score"] ?? 100) / 100})`,
+                transform: `translateX(-50%) scaleY(${(template["altura_poder_score"] ?? 100) / 100})`,
                 transformOrigin: "bottom left",
               }}
             >
-              {score !== null && score !== undefined ? score.toFixed(1) : "X"}
+              {score !== null && score !== undefined ? formatScore(score) : "X"}
             </span>
           )}
 
           {/* Poder: visible siempre, como cualquier otro dato de la carta.
-              Color del Género, sin sombra. Sin poder asignado, "X". */}
+              Color del Género, sin sombra. Sin poder asignado, "X".
+              Centrado en el punto del offset, mismo motivo que Score. */}
           {genreColor && (
             <span
               className="absolute font-card-name font-black leading-none"
               style={{
                 top: `${template.poder.offset_y}%`,
                 right: `${template.poder.offset_x}%`,
-                fontSize: `${template["tamaño_poder_score"]}cqw`,
+                fontSize: `${template["tamaño_poder"]}cqw`,
                 color: genreColor,
-                transform: `scaleY(${(template["altura_poder_score"] ?? 100) / 100})`,
+                transform: `translateX(50%) scaleY(${(template["altura_poder_score"] ?? 100) / 100})`,
                 transformOrigin: "top right",
               }}
             >
