@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { RARITY_LABELS } from "@/lib/supabase/types";
-import type { RedeemedCard, Rarity } from "@/lib/supabase/types";
+import type { CardTemplate, Genre, RedeemedCard, Rarity, Trait } from "@/lib/supabase/types";
 import { RARITY_BORDER_CLASS, RARITY_HEX } from "@/lib/supabase/rarity-colors";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
 
 // Pulso de brillo una sola vez para rara/épica/legendaria, del color de su
 // propia rareza -- común se revela sin ningún efecto especial, solo el
@@ -15,6 +16,9 @@ const GLOW_RARITIES = new Set<Rarity>(["rara", "epica", "legendaria"]);
 export function FlipCard({
   card,
   cardBackUrl,
+  cardTemplate,
+  genre,
+  trait,
   flipped,
   index,
   reducedMotion,
@@ -22,6 +26,9 @@ export function FlipCard({
 }: {
   card: RedeemedCard;
   cardBackUrl: string | null;
+  cardTemplate: CardTemplate | null;
+  genre: Genre | null;
+  trait: Trait | null;
   flipped: boolean;
   index: number;
   reducedMotion: boolean;
@@ -75,12 +82,33 @@ export function FlipCard({
               style={{ transform: "rotateY(180deg)" }}
             >
               {card.image_front_url ? (
-                // eslint-disable-next-line @next/next/no-img-element -- imagen remota, sin necesidad de next/image
-                <img
-                  src={card.image_front_url}
-                  alt={card.name}
-                  className="h-full w-full object-cover"
-                />
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- imagen remota, sin necesidad de next/image */}
+                  <img
+                    src={card.image_front_url}
+                    alt={card.name}
+                    className="h-full w-full object-cover"
+                    draggable={false}
+                    onContextMenu={(event) => event.preventDefault()}
+                  />
+                  <CardArtOverlay
+                    variant="coleccion"
+                    template={cardTemplate}
+                    applyArtTemplate={card.apply_art_template}
+                    name={card.name}
+                    useCardNameAsDisplay={card.use_card_name_as_display}
+                    displayLine1={card.display_line_1}
+                    displayLine2={card.display_line_2}
+                    displayLine3={card.display_line_3}
+                    nameShadowIntensity={card.name_shadow_intensity}
+                    nameFontSize={card.name_font_size}
+                    nameLineHeight={card.name_line_height}
+                    power={card.power}
+                    score={card.score}
+                    genre={genre}
+                    trait={trait}
+                  />
+                </>
               ) : (
                 <div className="flex h-full flex-col items-center justify-center gap-1 p-2 text-center">
                   <span className="text-sm font-semibold text-marca-noche">

@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
 import { usePackOpening } from "@/components/providers/pack-opening-provider";
 import { RARITY_LABELS } from "@/lib/supabase/types";
-import type { RedeemedCard, TradeDefault } from "@/lib/supabase/types";
+import type { CardTemplate, Genre, RedeemedCard, Trait, TradeDefault } from "@/lib/supabase/types";
 import { FlipCard } from "./flip-card";
 import { TradeAvailabilityToggle } from "./trade-availability-toggle";
 
@@ -15,12 +15,18 @@ type Phase = "envelope" | "cards" | "summary";
 export function PackOpening({
   cards,
   cardBackUrl,
+  cardTemplate,
+  genresById,
+  traitsById,
   packImageUrl,
   tradeDefault,
   onReset,
 }: {
   cards: RedeemedCard[];
   cardBackUrl: string | null;
+  cardTemplate: CardTemplate | null;
+  genresById: Map<string, Genre>;
+  traitsById: Map<string, Trait>;
   packImageUrl: string | null;
   tradeDefault: TradeDefault;
   onReset: () => void;
@@ -151,6 +157,9 @@ export function PackOpening({
               key={`${card.card_id}-${index}`}
               card={card}
               cardBackUrl={cardBackUrl}
+              cardTemplate={cardTemplate}
+              genre={card.genre_id ? (genresById.get(card.genre_id) ?? null) : null}
+              trait={card.trait_id ? (traitsById.get(card.trait_id) ?? null) : null}
               flipped={flipped.has(index)}
               index={index}
               reducedMotion={reducedMotion}

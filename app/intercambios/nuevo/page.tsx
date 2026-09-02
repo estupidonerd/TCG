@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCardArtContext } from "@/lib/supabase/card-art";
 import { sortCardsBySet } from "@/lib/utils/sort-cards-by-set";
 import { TradeWizard } from "./trade-wizard";
 import type { Card, PublicProfile } from "@/lib/supabase/types";
@@ -22,6 +23,7 @@ export default async function NuevoIntercambioPage({
     { data: sets },
     { data: committedRows },
     preselected,
+    cardArt,
   ] = await Promise.all([
     supabase
       .from("contacts")
@@ -34,7 +36,9 @@ export default async function NuevoIntercambioPage({
       .eq("user_id", user!.id),
     supabase
       .from("cards")
-      .select("id, set_id, slug, name, description, rarity, image_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom")
+      .select(
+        "id, set_id, slug, name, description, rarity, image_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom, use_card_name_as_display, display_line_1, display_line_2, display_line_3, apply_art_template, name_shadow_intensity, name_font_size, name_line_height",
+      )
       .eq("is_active", true),
     supabase.from("card_sets").select("id, released_at").order("released_at"),
     // Cuánto de cada carta propia ya está comprometido en otras ofertas
@@ -49,6 +53,7 @@ export default async function NuevoIntercambioPage({
     con
       ? supabase.rpc("get_public_profiles", { p_user_ids: [con] }).then((r) => r.data?.[0] ?? null)
       : Promise.resolve(null),
+    getCardArtContext(supabase),
   ]);
 
   const typedSets = (sets as { id: string; released_at: string | null }[] | null) ?? [];
@@ -65,6 +70,21 @@ export default async function NuevoIntercambioPage({
     committedByCard.set(row.card_id, (committedByCard.get(row.card_id) ?? 0) + row.quantity);
   }
 
+  const cardArtFields = (c: Card) => ({
+    power: c.power,
+    score: c.score,
+    use_card_name_as_display: c.use_card_name_as_display,
+    display_line_1: c.display_line_1,
+    display_line_2: c.display_line_2,
+    display_line_3: c.display_line_3,
+    apply_art_template: c.apply_art_template,
+    name_shadow_intensity: c.name_shadow_intensity,
+    name_font_size: c.name_font_size,
+    name_line_height: c.name_line_height,
+    genre: c.genre_id ? (cardArt.genresById.get(c.genre_id) ?? null) : null,
+    trait: c.trait_id ? (cardArt.traitsById.get(c.trait_id) ?? null) : null,
+  });
+
   const myCards = orderedCards
     .filter((c) => (ownedQuantityByCard.get(c.id)?.quantity ?? 0) > 0)
     .map((c) => ({
@@ -72,6 +92,7 @@ export default async function NuevoIntercambioPage({
       name: c.name,
       rarity: c.rarity,
       image_front_url: c.image_front_url,
+      ...cardArtFields(c),
       owned: ownedQuantityByCard.get(c.id)?.quantity ?? 0,
       committed: committedByCard.get(c.id) ?? 0,
       // Ya tiene descontada la reserva de mazo en origen (ver
@@ -106,8 +127,10 @@ export default async function NuevoIntercambioPage({
           name: c.name,
           rarity: c.rarity,
           image_front_url: c.image_front_url,
+          ...cardArtFields(c),
         }))}
         preselectedProfile={preselected as PublicProfile | null}
+        cardTemplate={cardArt.cardTemplate}
       />
     </main>
   );

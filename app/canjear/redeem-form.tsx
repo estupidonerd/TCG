@@ -1,12 +1,24 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { CodeInput } from "@/components/canjear/code-input";
 import { PackOpening } from "@/components/canjear/pack-opening";
-import type { RedeemResult } from "@/lib/supabase/types";
+import type { CardTemplate, Genre, RedeemResult, Trait } from "@/lib/supabase/types";
 
-export function RedeemForm({ cardBackUrl }: { cardBackUrl: string | null }) {
+export function RedeemForm({
+  cardBackUrl,
+  cardTemplate,
+  genres,
+  traits,
+}: {
+  cardBackUrl: string | null;
+  cardTemplate: CardTemplate | null;
+  genres: Genre[];
+  traits: Trait[];
+}) {
+  const genresById = useMemo(() => new Map(genres.map((g) => [g.id, g])), [genres]);
+  const traitsById = useMemo(() => new Map(traits.map((t) => [t.id, t])), [traits]);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +53,9 @@ export function RedeemForm({ cardBackUrl }: { cardBackUrl: string | null }) {
       <PackOpening
         cards={result.cards}
         cardBackUrl={cardBackUrl}
+        cardTemplate={cardTemplate}
+        genresById={genresById}
+        traitsById={traitsById}
         packImageUrl={result.pack_image_url}
         tradeDefault={result.trade_default}
         onReset={() => {

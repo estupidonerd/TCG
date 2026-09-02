@@ -6,13 +6,14 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { RARITY_LABELS } from "@/lib/supabase/types";
-import type { Card, Genre, Trait } from "@/lib/supabase/types";
+import type { Card, CardTemplate, Genre, Trait } from "@/lib/supabase/types";
 import {
   RARITY_BORDER_CLASS,
   RARITY_BADGE_CLASS,
   DARK_PANEL_RARITIES,
 } from "@/lib/supabase/rarity-colors";
 import { capitalizeFirst } from "@/lib/utils/capitalize";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
 import { TradeAvailabilityControl } from "./trade-availability-control";
 
 export function CardDetail({
@@ -20,6 +21,7 @@ export function CardDetail({
   genre,
   trait,
   cardBackUrl,
+  cardTemplate,
   quantity,
   publicQuantity,
   deckReserved,
@@ -30,6 +32,7 @@ export function CardDetail({
   genre: Genre | null;
   trait: Trait | null;
   cardBackUrl: string | null;
+  cardTemplate: CardTemplate | null;
   quantity: number;
   publicQuantity: number;
   deckReserved: number;
@@ -124,14 +127,38 @@ export function CardDetail({
                 >
                   <div className="absolute inset-0 [backface-visibility:hidden]">
                     {owned && card.image_front_url ? (
-                      <Image
-                        src={card.image_front_url}
-                        alt={card.name}
-                        fill
-                        priority
-                        sizes="(max-width: 1024px) 90vw, 45vw"
-                        className="object-cover"
-                      />
+                      <>
+                        <Image
+                          src={card.image_front_url}
+                          alt={card.name}
+                          fill
+                          priority
+                          sizes="(max-width: 1024px) 90vw, 45vw"
+                          className="object-cover"
+                          draggable={false}
+                          onContextMenu={(event) => event.preventDefault()}
+                        />
+                        <CardArtOverlay
+                          variant="coleccion"
+                          template={cardTemplate}
+                          applyArtTemplate={card.apply_art_template}
+                          name={card.name}
+                          useCardNameAsDisplay={card.use_card_name_as_display}
+                          displayLine1={card.display_line_1}
+                          displayLine2={card.display_line_2}
+                          displayLine3={card.display_line_3}
+                          nameShadowIntensity={card.name_shadow_intensity}
+                          nameFontSize={card.name_font_size}
+                          nameLineHeight={card.name_line_height}
+                          power={card.power}
+                          score={card.score}
+                          genre={genre}
+                          trait={trait}
+                          chapterInfo={card.chapter_info}
+                          artist={card.artist}
+                          showCreditLine
+                        />
+                      </>
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gray-400">
                         <span className="text-4xl text-white" aria-hidden="true">
@@ -252,17 +279,33 @@ export function CardDetail({
             </span>
           </div>
 
-          <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${cardBlockClass}`}>
-            <span className="text-3xl" aria-hidden="true">
-              ⚡
-            </span>
-            <div>
-              <p className={`text-xs font-semibold uppercase tracking-wide ${mutedTextClass}`}>
-                Puntaje
-              </p>
-              <p className="text-3xl font-bold leading-none">
-                {card.score !== null ? card.score.toFixed(1) : "SP"}
-              </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${cardBlockClass}`}>
+              <span className="text-3xl" aria-hidden="true">
+                ⚡
+              </span>
+              <div>
+                <p className={`text-xs font-semibold uppercase tracking-wide ${mutedTextClass}`}>
+                  Puntaje
+                </p>
+                <p className="text-3xl font-bold leading-none">
+                  {card.score !== null ? card.score.toFixed(1) : "SP"}
+                </p>
+              </div>
+            </div>
+
+            <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${cardBlockClass}`}>
+              <span className="text-3xl" aria-hidden="true">
+                💪
+              </span>
+              <div>
+                <p className={`text-xs font-semibold uppercase tracking-wide ${mutedTextClass}`}>
+                  Poder
+                </p>
+                <p className="text-3xl font-bold leading-none">
+                  {card.power !== null ? card.power : "SP"}
+                </p>
+              </div>
             </div>
           </div>
 

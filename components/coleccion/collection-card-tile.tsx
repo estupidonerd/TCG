@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import type { CollectionCard } from "@/lib/supabase/types";
+import type { CardTemplate, CollectionCard, Genre, Trait } from "@/lib/supabase/types";
 import { RARITY_BORDER_CLASS } from "@/lib/supabase/rarity-colors";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
 
 // El delay de entrada escalonada se cubre solo para las primeras ~24
 // cartas (más o menos una pantalla): con cientos de cartas, seguir sumando
@@ -17,10 +18,16 @@ export function CollectionCardTile({
   card,
   index,
   reducedMotion,
+  genre,
+  trait,
+  cardTemplate,
 }: {
   card: CollectionCard;
   index: number;
   reducedMotion: boolean;
+  genre: Genre | null;
+  trait: Trait | null;
+  cardTemplate: CardTemplate | null;
 }) {
   const owned = card.quantity > 0;
 
@@ -50,6 +57,8 @@ export function CollectionCardTile({
                 loading="lazy"
                 sizes="(max-width: 640px) 45vw, (max-width: 768px) 30vw, (max-width: 1024px) 23vw, (max-width: 1280px) 18vw, 15vw"
                 className="object-cover"
+                draggable={false}
+                onContextMenu={(event) => event.preventDefault()}
               />
             ) : (
               // Sin dueño: ni siquiera se pide la imagen (son cientos de
@@ -60,6 +69,26 @@ export function CollectionCardTile({
                   ?
                 </span>
               </div>
+            )}
+
+            {owned && (
+              <CardArtOverlay
+                variant="coleccion"
+                template={cardTemplate}
+                applyArtTemplate={card.apply_art_template}
+                name={card.name}
+                useCardNameAsDisplay={card.use_card_name_as_display}
+                displayLine1={card.display_line_1}
+                displayLine2={card.display_line_2}
+                displayLine3={card.display_line_3}
+                nameShadowIntensity={card.name_shadow_intensity}
+                nameFontSize={card.name_font_size}
+                nameLineHeight={card.name_line_height}
+                power={card.power}
+                score={card.score}
+                genre={genre}
+                trait={trait}
+              />
             )}
 
             {card.quantity > 1 && (

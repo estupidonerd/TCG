@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils/slugify";
-import { RARITIES, type Rarity } from "@/lib/supabase/types";
+import { CHAPTER_INFO_MAX_LENGTH, RARITIES, type Rarity } from "@/lib/supabase/types";
 
 const SCREEN_MAX_BYTES = 8 * 1024 * 1024;
 const PRINT_MAX_BYTES = 25 * 1024 * 1024;
@@ -33,6 +33,15 @@ function parseCardFields(formData: FormData) {
   const traitId = String(formData.get("trait_id") ?? "").trim();
   const power = Number(formData.get("power") ?? NaN);
   const scoreRaw = String(formData.get("score") ?? "").trim();
+  const useCardNameAsDisplay = formData.get("use_card_name_as_display") === "on";
+  const displayLine1 = String(formData.get("display_line_1") ?? "").trim();
+  const displayLine2 = String(formData.get("display_line_2") ?? "").trim();
+  const displayLine3 = String(formData.get("display_line_3") ?? "").trim();
+  const chapterInfo = String(formData.get("chapter_info") ?? "").trim();
+  const applyArtTemplate = formData.get("apply_art_template") === "on";
+  const nameShadowIntensity = Number(formData.get("name_shadow_intensity") ?? 50);
+  const nameFontSize = Number(formData.get("name_font_size") ?? 10);
+  const nameLineHeight = Number(formData.get("name_line_height") ?? 110);
 
   if (!name) throw new Error("El nombre es obligatorio.");
   if (!setId) throw new Error("Elige una expansión.");
@@ -55,6 +64,21 @@ function parseCardFields(formData: FormData) {
     score = parsedScore;
   }
 
+  if (chapterInfo.length > CHAPTER_INFO_MAX_LENGTH) {
+    throw new Error(
+      `El texto de capítulo no puede superar los ${CHAPTER_INFO_MAX_LENGTH} caracteres.`,
+    );
+  }
+  if (!Number.isFinite(nameShadowIntensity) || nameShadowIntensity < 0 || nameShadowIntensity > 100) {
+    throw new Error("La sombra del texto tiene que ser un número entre 0 y 100.");
+  }
+  if (!Number.isFinite(nameFontSize) || nameFontSize <= 0) {
+    throw new Error("El tamaño del nombre tiene que ser un número mayor que 0.");
+  }
+  if (!Number.isFinite(nameLineHeight) || nameLineHeight <= 0) {
+    throw new Error("El interlineado del nombre tiene que ser un número mayor que 0.");
+  }
+
   return {
     name,
     slug: slugify(slugInput || name),
@@ -70,6 +94,15 @@ function parseCardFields(formData: FormData) {
     trait_id: traitId,
     power,
     score,
+    use_card_name_as_display: useCardNameAsDisplay,
+    display_line_1: displayLine1 || null,
+    display_line_2: displayLine2 || null,
+    display_line_3: displayLine3 || null,
+    chapter_info: chapterInfo || null,
+    apply_art_template: applyArtTemplate,
+    name_shadow_intensity: nameShadowIntensity,
+    name_font_size: nameFontSize,
+    name_line_height: nameLineHeight,
   };
 }
 
@@ -103,7 +136,12 @@ async function uploadIfPresent(
   if (error) throw new Error(`Error subiendo imagen: ${error.message}`);
 
   if (bucket === "card-images") {
-    return admin.storage.from(bucket).getPublicUrl(fullPath).data.publicUrl;
+    // El path es siempre el mismo (upsert a propósito, para no acumular
+    // archivos huérfanos) -- sin esto, el navegador (o un CDN de por medio)
+    // sigue sirviendo la imagen vieja desde caché porque la URL no cambió,
+    // aunque el archivo en Storage ya se haya reemplazado.
+    const publicUrl = admin.storage.from(bucket).getPublicUrl(fullPath).data.publicUrl;
+    return `${publicUrl}?v=${Date.now()}`;
   }
   return fullPath;
 }

@@ -8,10 +8,12 @@ import { updateGameSettings } from "./actions";
 export function SettingsForm({
   initialScreenUrl,
   initialPrintPreviewUrl,
+  initialPostalBackPreviewUrl,
   initialPackImageUrl,
 }: {
   initialScreenUrl: string | null;
   initialPrintPreviewUrl: string | null;
+  initialPostalBackPreviewUrl: string | null;
   initialPackImageUrl: string | null;
 }) {
   const [pending, startTransition] = useTransition();
@@ -58,6 +60,17 @@ export function SettingsForm({
         name="card_back_print"
         initialPreviewUrl={initialPrintPreviewUrl}
         hint="No se muestra a jugadores."
+      />
+
+      <p className="text-sm text-marca-noche/70">
+        La postal tiene su propio reverso, distinto del de la carta normal.
+      </p>
+
+      <ImageUploadField
+        label="Reverso de la postal (impresión, alta res)"
+        name="postal_back_print"
+        initialPreviewUrl={initialPostalBackPreviewUrl}
+        hint="No se muestra a jugadores. Se imprime a 10x15cm."
       />
 
       <p className="text-sm text-marca-noche/70">

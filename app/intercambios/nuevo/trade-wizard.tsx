@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardPickerGrid, type PickableCard } from "@/components/trades/card-picker-grid";
 import { profileLabel } from "@/lib/utils/profile-label";
-import type { PublicProfile } from "@/lib/supabase/types";
+import type { CardTemplate, PublicProfile } from "@/lib/supabase/types";
 import type { ContactWithProfile } from "@/app/contactos/page";
 
 type MyCard = PickableCard & { owned: number; committed: number; publicQuantity: number };
@@ -23,11 +23,13 @@ export function TradeWizard({
   myCards,
   catalog,
   preselectedProfile,
+  cardTemplate,
 }: {
   contacts: ContactWithProfile[];
   myCards: MyCard[];
   catalog: PickableCard[];
   preselectedProfile: PublicProfile | null;
+  cardTemplate: CardTemplate | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>(preselectedProfile ? "offer" : "recipient");
@@ -248,6 +250,7 @@ export function TradeWizard({
               })
             }
             emptyMessage="No tienes cartas disponibles para ofrecer. Marca alguna como disponible para intercambio desde tu colección, o revisa si ya las comprometiste todas en otras ofertas."
+            cardTemplate={cardTemplate}
           />
         </div>
       )}
@@ -274,6 +277,7 @@ export function TradeWizard({
                 })
               }
               emptyMessage="Este jugador todavía no tiene ninguna carta."
+              cardTemplate={cardTemplate}
             />
           )}
         </div>

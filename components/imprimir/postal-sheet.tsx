@@ -1,21 +1,18 @@
 "use client";
 
-import { PrintBlock } from "./print-block";
+import { PostalBlock, POSTAL_BLOCK_W_MM, POSTAL_BLOCK_H_MM } from "./postal-block";
 import type { PrintCardAsset } from "@/app/imprimir/actions";
 import type { CardTemplate } from "@/lib/supabase/types";
+import type { PageSize } from "./print-sheet";
 
-const CARD_W_MM = 63;
-const CARD_H_MM = 88;
 const BLOCK_GAP_MM = 6;
 
-export type PageSize = { widthMm: number; heightMm: number; label: string };
-
-export const PAGE_SIZES: Record<"a4" | "letter", PageSize> = {
-  a4: { widthMm: 210, heightMm: 297, label: "A4" },
-  letter: { widthMm: 215.9, heightMm: 279.4, label: "Carta (Letter)" },
-};
-
-export function PrintSheet({
+// El bloque de postal (frente+dorso lado a lado) es 200x150mm, más ancho
+// que alto -- entra en una hoja en orientación horizontal, no vertical. Por
+// eso acá SIEMPRE se imprime en horizontal (se invierten ancho/alto del
+// tamaño de hoja elegido), sin importar que print-sheet.tsx (la carta
+// normal) use esa misma hoja en vertical.
+export function PostalSheet({
   cards,
   backUrl,
   cardTemplate,
@@ -26,8 +23,20 @@ export function PrintSheet({
   cardTemplate: CardTemplate | null;
   pageSize: PageSize;
 }) {
-  const cols = Math.max(Math.floor(pageSize.widthMm / (CARD_W_MM + BLOCK_GAP_MM)), 1);
-  const rows = Math.max(Math.floor(pageSize.heightMm / (CARD_H_MM * 2)), 1);
+  const landscapePageSize: PageSize = {
+    widthMm: Math.max(pageSize.widthMm, pageSize.heightMm),
+    heightMm: Math.min(pageSize.widthMm, pageSize.heightMm),
+    label: pageSize.label,
+  };
+
+  const cols = Math.max(
+    Math.floor(landscapePageSize.widthMm / (POSTAL_BLOCK_W_MM + BLOCK_GAP_MM)),
+    1,
+  );
+  const rows = Math.max(
+    Math.floor(landscapePageSize.heightMm / (POSTAL_BLOCK_H_MM + BLOCK_GAP_MM)),
+    1,
+  );
   const perPage = Math.max(cols * rows, 1);
 
   const pages: PrintCardAsset[][] = [];
@@ -37,12 +46,9 @@ export function PrintSheet({
 
   return (
     <>
-      {/* @page es una regla de nivel documento -- no se puede fijar por
-          inline style de un elemento, por eso va en un <style> propio,
-          recalculado según el tamaño de hoja elegido. */}
       <style>{`
         @page {
-          size: ${pageSize.widthMm}mm ${pageSize.heightMm}mm;
+          size: ${landscapePageSize.widthMm}mm ${landscapePageSize.heightMm}mm;
           margin: 0;
         }
         .print-sheet-page, .print-sheet-page * {
@@ -68,21 +74,14 @@ export function PrintSheet({
           <div
             key={pageIndex}
             className="print-sheet-page flex items-center justify-center bg-white shadow-lg"
-            style={{ width: `${pageSize.widthMm}mm`, height: `${pageSize.heightMm}mm` }}
+            style={{ width: `${landscapePageSize.widthMm}mm`, height: `${landscapePageSize.heightMm}mm` }}
           >
             <div
               className="flex flex-wrap items-center justify-center"
               style={{ gap: `${BLOCK_GAP_MM}mm` }}
             >
               {pageCards.map((card) => (
-                <PrintBlock
-                  key={card.id}
-                  card={card}
-                  backUrl={backUrl}
-                  cardTemplate={cardTemplate}
-                  label={card.name}
-                  lowRes={!card.isHighRes}
-                />
+                <PostalBlock key={card.id} card={card} backUrl={backUrl} cardTemplate={cardTemplate} label={card.name} />
               ))}
             </div>
           </div>

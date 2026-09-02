@@ -4,11 +4,25 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
+import type { CardTemplate, Genre, Trait } from "@/lib/supabase/types";
 
 export type CrossingCard = {
   id: string;
   name: string;
   image_front_url: string | null;
+  power: number | null;
+  score: number | null;
+  use_card_name_as_display: boolean;
+  display_line_1: string | null;
+  display_line_2: string | null;
+  display_line_3: string | null;
+  apply_art_template: boolean;
+  name_shadow_intensity: number;
+  name_font_size: number;
+  name_line_height: number;
+  genre: Pick<Genre, "color_hex" | "icon_url"> | null;
+  trait: Pick<Trait, "color_hex" | "icon_url"> | null;
 };
 
 const MAX_SHOWN = 4;
@@ -22,10 +36,12 @@ const MAX_SHOWN = 4;
 export function TradeAcceptAnimation({
   offered,
   requested,
+  cardTemplate,
   onComplete,
 }: {
   offered: CrossingCard[];
   requested: CrossingCard[];
+  cardTemplate: CardTemplate | null;
   onComplete: () => void;
 }) {
   const reducedMotion = usePrefersReducedMotion();
@@ -59,7 +75,7 @@ export function TradeAcceptAnimation({
               animate={{ x: 200, opacity: [1, 1, 0] }}
               transition={{ duration, delay: i * stagger, ease: "easeInOut" }}
             >
-              <CardFace card={card} />
+              <CardFace card={card} cardTemplate={cardTemplate} />
             </motion.div>
           ))}
         </div>
@@ -73,7 +89,7 @@ export function TradeAcceptAnimation({
               animate={{ x: -200, opacity: [1, 1, 0] }}
               transition={{ duration, delay: i * stagger, ease: "easeInOut" }}
             >
-              <CardFace card={card} />
+              <CardFace card={card} cardTemplate={cardTemplate} />
             </motion.div>
           ))}
         </div>
@@ -82,7 +98,7 @@ export function TradeAcceptAnimation({
   );
 }
 
-function CardFace({ card }: { card: CrossingCard }) {
+function CardFace({ card, cardTemplate }: { card: CrossingCard; cardTemplate: CardTemplate | null }) {
   if (!card.image_front_url) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-gray-400 text-xs text-white">
@@ -91,6 +107,33 @@ function CardFace({ card }: { card: CrossingCard }) {
     );
   }
   return (
-    <Image src={card.image_front_url} alt={card.name} fill sizes="60px" className="object-cover" />
+    <>
+      <Image
+        src={card.image_front_url}
+        alt={card.name}
+        fill
+        sizes="60px"
+        className="object-cover"
+        draggable={false}
+        onContextMenu={(event) => event.preventDefault()}
+      />
+      <CardArtOverlay
+        variant="coleccion"
+        template={cardTemplate}
+        applyArtTemplate={card.apply_art_template}
+        name={card.name}
+        useCardNameAsDisplay={card.use_card_name_as_display}
+        displayLine1={card.display_line_1}
+        displayLine2={card.display_line_2}
+        displayLine3={card.display_line_3}
+        nameShadowIntensity={card.name_shadow_intensity}
+        nameFontSize={card.name_font_size}
+        nameLineHeight={card.name_line_height}
+        power={card.power}
+        score={card.score}
+        genre={card.genre}
+        trait={card.trait}
+      />
+    </>
   );
 }

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CardDetail } from "@/components/coleccion/card-detail";
 import { sortCardsBySet } from "@/lib/utils/sort-cards-by-set";
-import type { Card, Genre, Trait, GameSettings } from "@/lib/supabase/types";
+import type { Card, CardTemplate, Genre, Trait, GameSettings } from "@/lib/supabase/types";
 
 export default async function CardDetailPage({
   params,
@@ -18,7 +18,7 @@ export default async function CardDetailPage({
   const { data: card } = await supabase
     .from("cards")
     .select(
-      "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom",
+      "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom, use_card_name_as_display, display_line_1, display_line_2, display_line_3, chapter_info, apply_art_template, name_shadow_intensity, name_font_size, name_line_height",
     )
     .eq("slug", slug)
     .eq("is_active", true)
@@ -42,7 +42,7 @@ export default async function CardDetailPage({
       ? supabase
           .from("genres")
           .select(
-            "id, slug, name, sort_order, base_ability_name, base_ability_text, fandom_ability_name, fandom_ability_text",
+            "id, slug, name, sort_order, base_ability_name, base_ability_text, fandom_ability_name, fandom_ability_text, color_hex, icon_url",
           )
           .eq("id", typedCard.genre_id)
           .single()
@@ -50,13 +50,13 @@ export default async function CardDetailPage({
     typedCard.trait_id
       ? supabase
           .from("traits")
-          .select("id, slug, name, sort_order, ability_name, ability_text")
+          .select("id, slug, name, sort_order, ability_name, ability_text, color_hex, icon_url")
           .eq("id", typedCard.trait_id)
           .single()
       : Promise.resolve({ data: null }),
     supabase
       .from("game_settings")
-      .select("id, card_back_screen_url, card_back_print_url, pack_image_url")
+      .select("id, card_back_screen_url, card_back_print_url, pack_image_url, card_template")
       .eq("id", true)
       .single(),
     supabase
@@ -121,6 +121,7 @@ export default async function CardDetailPage({
       genre={genre as Genre | null}
       trait={trait as Trait | null}
       cardBackUrl={(settings as GameSettings | null)?.card_back_screen_url ?? null}
+      cardTemplate={(settings as GameSettings | null)?.card_template as CardTemplate | null}
       quantity={userCard?.quantity ?? 0}
       publicQuantity={userCard?.public_quantity ?? 0}
       deckReserved={deckReserved}

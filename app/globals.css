@@ -10,6 +10,10 @@
 
 @theme inline {
   --font-titillium: var(--font-titillium-web);
+  /* Fuente del nombre en el arte de carta: hasta que se agregue el archivo
+     real vía next/font/local (ver app/layout.tsx), cae a Titillium Web para
+     que el overlay ya funcione visualmente con la clase font-card-name. */
+  --font-card-name: var(--font-card-name-local, var(--font-titillium-web));
 
   --color-marca-violeta: var(--marca-violeta);
   --color-marca-rojo: var(--marca-rojo);

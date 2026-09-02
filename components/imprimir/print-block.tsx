@@ -1,4 +1,7 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
+import type { CardTemplate } from "@/lib/supabase/types";
+import type { PrintCardAsset } from "@/app/imprimir/actions";
 
 // 63x88mm, tamaño estándar tipo Magic. Cada bloque impreso es una columna
 // vertical de 63x176mm: el frente abajo en orientación normal, el dorso
@@ -53,7 +56,15 @@ function CropMark({ corner }: { corner: "tl" | "tr" | "bl" | "br" }) {
   );
 }
 
-function CardFace({ url, placeholderClass }: { url: string | null; placeholderClass: string }) {
+function CardFace({
+  url,
+  placeholderClass,
+  overlay,
+}: {
+  url: string | null;
+  placeholderClass: string;
+  overlay?: ReactNode;
+}) {
   if (!url) {
     return (
       <div
@@ -74,30 +85,36 @@ function CardFace({ url, placeholderClass }: { url: string | null; placeholderCl
     // aplicada la rotación del contenedor, así que dejarlo en 0 hace que el
     // arte llegue justo hasta el pliegue tanto en el frente como en el
     // dorso, sin blanco de por medio al doblar.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={url}
-      alt=""
+    <div
+      className="absolute"
       style={{
-        position: "absolute",
         left: `${SAFE_MARGIN_MM}mm`,
         top: 0,
         width: `${ART_W_MM}mm`,
         height: `${ART_H_MM}mm`,
-        objectFit: "cover",
       }}
-    />
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt=""
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+      />
+      {overlay}
+    </div>
   );
 }
 
 export function PrintBlock({
-  frontUrl,
+  card,
   backUrl,
+  cardTemplate,
   label,
   lowRes,
 }: {
-  frontUrl: string | null;
+  card: PrintCardAsset;
   backUrl: string | null;
+  cardTemplate: CardTemplate | null;
   label: string;
   lowRes: boolean;
 }) {
@@ -124,7 +141,31 @@ export function PrintBlock({
           className="absolute left-0 overflow-hidden"
           style={{ top: `${CARD_H_MM}mm`, width: `${CARD_W_MM}mm`, height: `${CARD_H_MM}mm` }}
         >
-          <CardFace url={frontUrl} placeholderClass="bg-gray-400" />
+          <CardFace
+            url={card.frontUrl}
+            placeholderClass="bg-gray-400"
+            overlay={
+              <CardArtOverlay
+                variant="impresion"
+                template={cardTemplate}
+                applyArtTemplate={card.applyArtTemplate}
+                name={card.name}
+                useCardNameAsDisplay={card.useCardNameAsDisplay}
+                displayLine1={card.displayLine1}
+                displayLine2={card.displayLine2}
+                displayLine3={card.displayLine3}
+                nameShadowIntensity={card.nameShadowIntensity}
+                nameFontSize={card.nameFontSize}
+                nameLineHeight={card.nameLineHeight}
+                power={card.power}
+                score={card.score}
+                genre={card.genre}
+                trait={card.trait}
+                chapterInfo={card.chapterInfo}
+                artist={card.artist}
+              />
+            }
+          />
         </div>
 
         {/* Línea de pliegue, suave y punteada */}
@@ -143,7 +184,7 @@ export function PrintBlock({
         <CropMark corner="br" />
       </div>
       <span
-        className="mt-1 max-w-[63mm] truncate text-center text-[7px] leading-tight text-marca-noche/50 print:hidden"
+        className="mt-3 max-w-[63mm] truncate text-center text-[7px] leading-tight text-marca-noche/50 print:hidden"
         style={{ width: `${CARD_W_MM}mm` }}
       >
         {label}

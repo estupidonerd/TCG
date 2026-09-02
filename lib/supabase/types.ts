@@ -41,6 +41,8 @@ export type Genre = {
   base_ability_text: string;
   fandom_ability_name: string;
   fandom_ability_text: string;
+  color_hex: string | null;
+  icon_url: string | null;
 };
 
 export type Trait = {
@@ -50,13 +52,53 @@ export type Trait = {
   sort_order: number;
   ability_name: string;
   ability_text: string;
+  color_hex: string | null;
+  icon_url: string | null;
+};
+
+// Plantilla general de composición del arte de carta (game_settings.card_template).
+// Todo valor espacial es porcentaje relativo al tamaño de la carta, nunca
+// píxeles fijos, para que escale igual en pantalla e impresión. Tamaño va
+// compartido de a pares (un tamaño para los dos íconos, otro para
+// Poder/Puntaje); cada uno de los 4 elementos tiene su propio offset
+// independiente, medido desde su esquina de anclaje (género: arriba-izq,
+// rasgo: abajo-der, poder: arriba-der, score: abajo-izq).
+export type CardTemplateOffset = { offset_x: number; offset_y: number };
+
+export type CardTemplate = {
+  marco_url: string | null;
+  // El tamaño y el interlineado del nombre viven por carta (cards.name_font_size
+  // / cards.name_line_height), no acá: nombres de largo distinto necesitan
+  // ajustes distintos. Esta zona solo define dónde y con qué rotación va.
+  zona_nombre: {
+    x: number;
+    y: number;
+    ancho: number;
+    alto: number;
+    angulo: number;
+  };
+  "tamaño_iconos": number;
+  "tamaño_poder_score": number;
+  // Estiramiento vertical de Poder/Puntaje, en % (100 = normal), sin tocar
+  // el ancho -- solo la altura de esos dos números, nunca del nombre.
+  "altura_poder_score": number;
+  icono_genero: CardTemplateOffset;
+  icono_rasgo: CardTemplateOffset;
+  poder: CardTemplateOffset;
+  score: CardTemplateOffset;
+  // Línea de crédito de impresión/postal: siempre centrada en X, solo
+  // necesita desplazamiento vertical y tamaño.
+  credito: { offset_y: number; "tamaño": number };
 };
 
 export type GameSettings = {
   id: true;
   card_back_screen_url: string | null;
   card_back_print_url: string | null;
+  postal_back_print_url: string | null;
   pack_image_url: string | null;
+  card_template: CardTemplate | null;
+  card_name_font_url: string | null;
 };
 
 export type Card = {
@@ -77,7 +119,22 @@ export type Card = {
   power: number | null;
   score: number | null;
   is_fandom: boolean;
+  use_card_name_as_display: boolean;
+  display_line_1: string | null;
+  display_line_2: string | null;
+  display_line_3: string | null;
+  chapter_info: string | null;
+  apply_art_template: boolean;
+  name_shadow_intensity: number;
+  name_font_size: number;
+  name_line_height: number;
 };
+
+// Límite de chapter_info: calculado (no inventado) midiendo con Titillium Web
+// real cuánto texto entra en 57mm de ancho (63mm de carta - 3mm de margen de
+// seguridad a cada lado, el mismo ART_W_MM de components/imprimir/print-block.tsx)
+// a 8pt (el extremo más exigente del rango de 7-8pt) en 2 líneas.
+export const CHAPTER_INFO_MAX_LENGTH = 90;
 
 // Una carta activa del juego combinada con cuántas copias tiene el jugador
 // (0 si no la tiene). Usado en /coleccion.
@@ -105,6 +162,20 @@ export type RedeemedCard = {
   // para intercambio" para calcular a qué valor de public_quantity
   // corresponde "todo público" (quantity - 1).
   quantity: number;
+  // Lo que necesita la plantilla de arte para que la carta se vea igual acá
+  // que en la colección, apenas se revela.
+  genre_id: string | null;
+  trait_id: string | null;
+  power: number | null;
+  score: number | null;
+  use_card_name_as_display: boolean;
+  display_line_1: string | null;
+  display_line_2: string | null;
+  display_line_3: string | null;
+  apply_art_template: boolean;
+  name_shadow_intensity: number;
+  name_font_size: number;
+  name_line_height: number;
 };
 
 export type RedeemResult = {

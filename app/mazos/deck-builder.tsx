@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DeckRow, copyLimit } from "@/components/mazos/deck-row";
-import type { Rarity } from "@/lib/supabase/types";
+import type { CardTemplate, Genre, Rarity, Trait } from "@/lib/supabase/types";
 
 const DECK_SIZE = 40;
 
@@ -17,6 +17,17 @@ export type BuilderCard = {
   genre_id: string | null;
   trait_id: string | null;
   power: number | null;
+  score: number | null;
+  use_card_name_as_display: boolean;
+  display_line_1: string | null;
+  display_line_2: string | null;
+  display_line_3: string | null;
+  apply_art_template: boolean;
+  name_shadow_intensity: number;
+  name_font_size: number;
+  name_line_height: number;
+  genre: Pick<Genre, "color_hex" | "icon_url"> | null;
+  trait: Pick<Trait, "color_hex" | "icon_url"> | null;
   owned: number;
 };
 
@@ -30,6 +41,7 @@ export function DeckBuilder({
   myCards,
   genres,
   traits,
+  cardTemplate,
 }: {
   deckId: string | null;
   initialName: string;
@@ -37,6 +49,7 @@ export function DeckBuilder({
   myCards: BuilderCard[];
   genres: { id: string; name: string }[];
   traits: { id: string; name: string }[];
+  cardTemplate: CardTemplate | null;
 }) {
   const router = useRouter();
   const [currentDeckId, setCurrentDeckId] = useState(deckId);
@@ -271,6 +284,7 @@ export function DeckBuilder({
                   card={card}
                   genreName={card.genre_id ? (genresById.get(card.genre_id) ?? null) : null}
                   traitName={card.trait_id ? (traitsById.get(card.trait_id) ?? null) : null}
+                  cardTemplate={cardTemplate}
                   quantity={selection.get(card.id) ?? 0}
                   max={maxByCard[card.id] ?? 0}
                   onChange={(next) => changeQty(card.id, next)}

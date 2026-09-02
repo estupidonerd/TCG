@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCardArtContext } from "@/lib/supabase/card-art";
 import { DeckBuilder } from "@/app/mazos/deck-builder";
 import type { BuilderCard } from "@/app/mazos/deck-builder";
 import type { Deck, DeckCard } from "@/lib/supabase/types";
@@ -22,6 +23,7 @@ export default async function EditarMazoPage({
     { data: cards },
     { data: genres },
     { data: traits },
+    cardArt,
   ] = await Promise.all([
     supabase
       .from("decks")
@@ -33,10 +35,13 @@ export default async function EditarMazoPage({
     supabase.from("user_cards").select("card_id, quantity").eq("user_id", user!.id).gt("quantity", 0),
     supabase
       .from("cards")
-      .select("id, slug, name, rarity, image_front_url, genre_id, trait_id, power")
+      .select(
+        "id, slug, name, rarity, image_front_url, genre_id, trait_id, power, score, use_card_name_as_display, display_line_1, display_line_2, display_line_3, apply_art_template, name_shadow_intensity, name_font_size, name_line_height",
+      )
       .eq("is_active", true),
     supabase.from("genres").select("id, name, sort_order").order("sort_order"),
     supabase.from("traits").select("id, name, sort_order").order("sort_order"),
+    getCardArtContext(supabase),
   ]);
 
   if (!deck) notFound();
@@ -48,9 +53,16 @@ export default async function EditarMazoPage({
     ]),
   );
 
-  const myCards: BuilderCard[] = ((cards as Omit<BuilderCard, "owned">[] | null) ?? [])
+  const myCards: BuilderCard[] = (
+    (cards as Omit<BuilderCard, "owned" | "genre" | "trait">[] | null) ?? []
+  )
     .filter((c) => ownedMap.has(c.id))
-    .map((c) => ({ ...c, owned: ownedMap.get(c.id)! }));
+    .map((c) => ({
+      ...c,
+      owned: ownedMap.get(c.id)!,
+      genre: c.genre_id ? (cardArt.genresById.get(c.genre_id) ?? null) : null,
+      trait: c.trait_id ? (cardArt.traitsById.get(c.trait_id) ?? null) : null,
+    }));
 
   const initialSelection = Object.fromEntries(
     ((deckCards as DeckCard[] | null) ?? []).map((dc) => [dc.card_id, dc.quantity]),
@@ -65,6 +77,7 @@ export default async function EditarMazoPage({
         myCards={myCards}
         genres={(genres as { id: string; name: string }[] | null) ?? []}
         traits={(traits as { id: string; name: string }[] | null) ?? []}
+        cardTemplate={cardArt.cardTemplate}
       />
     </main>
   );

@@ -4,13 +4,26 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { RARITY_BORDER_CLASS } from "@/lib/supabase/rarity-colors";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { Rarity } from "@/lib/supabase/types";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
+import type { CardTemplate, Genre, Rarity, Trait } from "@/lib/supabase/types";
 
 export type PickableCard = {
   id: string;
   name: string;
   rarity: Rarity;
   image_front_url: string | null;
+  power: number | null;
+  score: number | null;
+  use_card_name_as_display: boolean;
+  display_line_1: string | null;
+  display_line_2: string | null;
+  display_line_3: string | null;
+  apply_art_template: boolean;
+  name_shadow_intensity: number;
+  name_font_size: number;
+  name_line_height: number;
+  genre: Pick<Genre, "color_hex" | "icon_url"> | null;
+  trait: Pick<Trait, "color_hex" | "icon_url"> | null;
 };
 
 // Grilla de selección con stepper de cantidad por carta, usada tanto para
@@ -29,12 +42,14 @@ export function CardPickerGrid({
   selected,
   onChange,
   emptyMessage,
+  cardTemplate,
 }: {
   cards: PickableCard[];
   maxByCard: Record<string, number>;
   selected: Map<string, number>;
   onChange: (cardId: string, quantity: number) => void;
   emptyMessage: string;
+  cardTemplate: CardTemplate | null;
 }) {
   const [query, setQuery] = useState("");
 
@@ -78,13 +93,34 @@ export function CardPickerGrid({
                 >
                   <div className="relative aspect-[5/7] w-full bg-gray-200">
                     {card.image_front_url ? (
-                      <Image
-                        src={card.image_front_url}
-                        alt={card.name}
-                        fill
-                        sizes="150px"
-                        className="object-cover"
-                      />
+                      <>
+                        <Image
+                          src={card.image_front_url}
+                          alt={card.name}
+                          fill
+                          sizes="150px"
+                          className="object-cover"
+                          draggable={false}
+                          onContextMenu={(event) => event.preventDefault()}
+                        />
+                        <CardArtOverlay
+                          variant="coleccion"
+                          template={cardTemplate}
+                          applyArtTemplate={card.apply_art_template}
+                          name={card.name}
+                          useCardNameAsDisplay={card.use_card_name_as_display}
+                          displayLine1={card.display_line_1}
+                          displayLine2={card.display_line_2}
+                          displayLine3={card.display_line_3}
+                          nameShadowIntensity={card.name_shadow_intensity}
+                          nameFontSize={card.name_font_size}
+                          nameLineHeight={card.name_line_height}
+                          power={card.power}
+                          score={card.score}
+                          genre={card.genre}
+                          trait={card.trait}
+                        />
+                      </>
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gray-400 text-white">
                         ?

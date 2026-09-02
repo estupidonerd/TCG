@@ -11,7 +11,8 @@ import { TradeAcceptAnimation } from "@/components/trades/trade-accept-animation
 import { profileLabel } from "@/lib/utils/profile-label";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { TradeStatus } from "@/lib/supabase/types";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
+import type { CardTemplate, TradeStatus } from "@/lib/supabase/types";
 import type { TradeItemWithCard, TradeWithDetails } from "./page";
 
 type Tab = "recibidas" | "enviadas" | "historial";
@@ -37,7 +38,13 @@ function formatDate(iso: string | null) {
   return new Date(iso).toLocaleDateString("es-CO", { day: "numeric", month: "short" });
 }
 
-export function TradeInbox({ trades: initialTrades }: { trades: TradeWithDetails[] }) {
+export function TradeInbox({
+  trades: initialTrades,
+  cardTemplate,
+}: {
+  trades: TradeWithDetails[];
+  cardTemplate: CardTemplate | null;
+}) {
   const router = useRouter();
   const [trades, setTrades] = useState(initialTrades);
   const [tab, setTab] = useState<Tab>("recibidas");
@@ -197,10 +204,12 @@ export function TradeInbox({ trades: initialTrades }: { trades: TradeWithDetails
               <ItemsColumn
                 title={trade.myRole === "sender" ? "Tú ofreces" : `${profileLabel(trade.otherParty)} ofrece`}
                 items={trade.senderItems}
+                cardTemplate={cardTemplate}
               />
               <ItemsColumn
                 title={trade.myRole === "sender" ? `Le pides a ${profileLabel(trade.otherParty)}` : "Te piden"}
                 items={trade.receiverItems}
+                cardTemplate={cardTemplate}
               />
             </div>
 
@@ -255,16 +264,9 @@ export function TradeInbox({ trades: initialTrades }: { trades: TradeWithDetails
 
       {animatingTrade && (
         <TradeAcceptAnimation
-          offered={animatingTrade.senderItems.map((i) => ({
-            id: i.id,
-            name: i.card?.name ?? "Carta",
-            image_front_url: i.card?.image_front_url ?? null,
-          }))}
-          requested={animatingTrade.receiverItems.map((i) => ({
-            id: i.id,
-            name: i.card?.name ?? "Carta",
-            image_front_url: i.card?.image_front_url ?? null,
-          }))}
+          offered={animatingTrade.senderItems.map(crossingCardFromItem)}
+          requested={animatingTrade.receiverItems.map(crossingCardFromItem)}
+          cardTemplate={cardTemplate}
           onComplete={() => {
             setAnimatingTrade(null);
             router.refresh();
@@ -307,7 +309,35 @@ function TabButton({
   );
 }
 
-function ItemsColumn({ title, items }: { title: string; items: TradeItemWithCard[] }) {
+function crossingCardFromItem(item: TradeItemWithCard) {
+  return {
+    id: item.id,
+    name: item.card?.name ?? "Carta",
+    image_front_url: item.card?.image_front_url ?? null,
+    power: item.card?.power ?? null,
+    score: item.card?.score ?? null,
+    use_card_name_as_display: item.card?.use_card_name_as_display ?? true,
+    display_line_1: item.card?.display_line_1 ?? null,
+    display_line_2: item.card?.display_line_2 ?? null,
+    display_line_3: item.card?.display_line_3 ?? null,
+    apply_art_template: item.card?.apply_art_template ?? true,
+    name_shadow_intensity: item.card?.name_shadow_intensity ?? 50,
+    name_font_size: item.card?.name_font_size ?? 10,
+    name_line_height: item.card?.name_line_height ?? 110,
+    genre: item.card?.genre ?? null,
+    trait: item.card?.trait ?? null,
+  };
+}
+
+function ItemsColumn({
+  title,
+  items,
+  cardTemplate,
+}: {
+  title: string;
+  items: TradeItemWithCard[];
+  cardTemplate: CardTemplate | null;
+}) {
   return (
     <div>
       <p className="mb-1.5 truncate text-xs font-bold uppercase tracking-wide text-marca-noche/50">
@@ -321,13 +351,34 @@ function ItemsColumn({ title, items }: { title: string; items: TradeItemWithCard
             <li key={item.id} className="flex items-center gap-1.5">
               <div className="relative h-9 w-7 shrink-0 overflow-hidden rounded border border-marca-noche/10 bg-gray-200">
                 {item.card?.image_front_url && (
-                  <Image
-                    src={item.card.image_front_url}
-                    alt=""
-                    fill
-                    sizes="30px"
-                    className="object-cover"
-                  />
+                  <>
+                    <Image
+                      src={item.card.image_front_url}
+                      alt=""
+                      fill
+                      sizes="30px"
+                      className="object-cover"
+                      draggable={false}
+                      onContextMenu={(event) => event.preventDefault()}
+                    />
+                    <CardArtOverlay
+                      variant="coleccion"
+                      template={cardTemplate}
+                      applyArtTemplate={item.card.apply_art_template}
+                      name={item.card.name}
+                      useCardNameAsDisplay={item.card.use_card_name_as_display}
+                      displayLine1={item.card.display_line_1}
+                      displayLine2={item.card.display_line_2}
+                      displayLine3={item.card.display_line_3}
+                      nameShadowIntensity={item.card.name_shadow_intensity}
+                      nameFontSize={item.card.name_font_size}
+                      nameLineHeight={item.card.name_line_height}
+                      power={item.card.power}
+                      score={item.card.score}
+                      genre={item.card.genre}
+                      trait={item.card.trait}
+                    />
+                  </>
                 )}
               </div>
               <span className="truncate text-xs text-marca-noche">

@@ -2,7 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { RARITIES, RARITY_LABELS } from "@/lib/supabase/types";
-import type { CardSet, CollectionCard, Genre, Rarity, Trait, TradeDefault } from "@/lib/supabase/types";
+import type {
+  CardSet,
+  CardTemplate,
+  CollectionCard,
+  Genre,
+  Rarity,
+  Trait,
+  TradeDefault,
+} from "@/lib/supabase/types";
 import { CollectionCardTile } from "@/components/coleccion/collection-card-tile";
 import { TradeSettingsModal } from "@/components/coleccion/trade-settings-modal";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -18,12 +26,14 @@ export function CollectionGrid({
   sets,
   genres,
   traits,
+  cardTemplate,
   initialTradeDefault,
 }: {
   cards: CollectionCard[];
   sets: CardSet[];
   genres: Genre[];
   traits: Trait[];
+  cardTemplate: CardTemplate | null;
   initialTradeDefault: TradeDefault;
 }) {
   const reducedMotion = usePrefersReducedMotion();
@@ -36,6 +46,8 @@ export function CollectionGrid({
   const [ownershipFilter, setOwnershipFilter] = useState<OwnershipFilter>("conseguidas");
 
   const setsById = useMemo(() => new Map(sets.map((s) => [s.id, s])), [sets]);
+  const genresById = useMemo(() => new Map(genres.map((g) => [g.id, g])), [genres]);
+  const traitsById = useMemo(() => new Map(traits.map((t) => [t.id, t])), [traits]);
 
   // Solo expansiones/géneros/rasgos que efectivamente tienen alguna carta
   // activa, en el orden en que aparecen las cartas (ya vienen ordenadas
@@ -194,7 +206,15 @@ export function CollectionGrid({
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {filteredCards.map((card, index) => (
-          <CollectionCardTile key={card.id} card={card} index={index} reducedMotion={reducedMotion} />
+          <CollectionCardTile
+            key={card.id}
+            card={card}
+            index={index}
+            reducedMotion={reducedMotion}
+            genre={card.genre_id ? (genresById.get(card.genre_id) ?? null) : null}
+            trait={card.trait_id ? (traitsById.get(card.trait_id) ?? null) : null}
+            cardTemplate={cardTemplate}
+          />
         ))}
       </div>
 

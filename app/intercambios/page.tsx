@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCardArtContext } from "@/lib/supabase/card-art";
 import { TradeInbox } from "./trade-inbox";
-import type { Trade, TradeItem, PublicProfile, Rarity } from "@/lib/supabase/types";
+import type { Genre, Trade, TradeItem, PublicProfile, Rarity, Trait } from "@/lib/supabase/types";
 
 export type TradeCardLite = {
   id: string;
@@ -8,6 +9,18 @@ export type TradeCardLite = {
   name: string;
   rarity: Rarity;
   image_front_url: string | null;
+  power: number | null;
+  score: number | null;
+  use_card_name_as_display: boolean;
+  display_line_1: string | null;
+  display_line_2: string | null;
+  display_line_3: string | null;
+  apply_art_template: boolean;
+  name_shadow_intensity: number;
+  name_font_size: number;
+  name_line_height: number;
+  genre: Pick<Genre, "color_hex" | "icon_url"> | null;
+  trait: Pick<Trait, "color_hex" | "icon_url"> | null;
 };
 
 export type TradeItemWithCard = TradeItem & { card: TradeCardLite | null };
@@ -76,16 +89,33 @@ export default async function IntercambiosPage() {
     ),
   );
 
-  const [{ data: cards }, { data: profiles }] = await Promise.all([
+  const [{ data: cards }, { data: profiles }, cardArt] = await Promise.all([
     cardIds.length > 0
-      ? supabase.from("cards").select("id, slug, name, rarity, image_front_url").in("id", cardIds)
-      : Promise.resolve({ data: [] as TradeCardLite[] }),
+      ? supabase
+          .from("cards")
+          .select(
+            "id, slug, name, rarity, image_front_url, power, score, use_card_name_as_display, display_line_1, display_line_2, display_line_3, apply_art_template, name_shadow_intensity, name_font_size, name_line_height, genre_id, trait_id",
+          )
+          .in("id", cardIds)
+      : Promise.resolve({ data: [] as (TradeCardLite & { genre_id: string | null; trait_id: string | null })[] }),
     otherPartyIds.length > 0
       ? supabase.rpc("get_public_profiles", { p_user_ids: otherPartyIds })
       : Promise.resolve({ data: [] as PublicProfile[] }),
+    getCardArtContext(supabase),
   ]);
 
-  const cardsById = new Map(((cards as TradeCardLite[] | null) ?? []).map((c) => [c.id, c]));
+  const cardsById = new Map(
+    (
+      (cards as (TradeCardLite & { genre_id: string | null; trait_id: string | null })[] | null) ?? []
+    ).map((c) => [
+      c.id,
+      {
+        ...c,
+        genre: c.genre_id ? (cardArt.genresById.get(c.genre_id) ?? null) : null,
+        trait: c.trait_id ? (cardArt.traitsById.get(c.trait_id) ?? null) : null,
+      } as TradeCardLite,
+    ]),
+  );
   const profilesById = new Map(
     ((profiles as PublicProfile[] | null) ?? []).map((p) => [p.id, p]),
   );
@@ -122,7 +152,7 @@ export default async function IntercambiosPage() {
 
   return (
     <main className="min-h-svh px-4 py-8 sm:px-6">
-      <TradeInbox trades={tradesWithDetails} />
+      <TradeInbox trades={tradesWithDetails} cardTemplate={cardArt.cardTemplate} />
     </main>
   );
 }

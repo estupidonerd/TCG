@@ -9,11 +9,18 @@ import {
 } from "@/components/admin/form-field";
 import { SubmitButton, ErrorMessage } from "@/components/admin/submit-button";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
-import { CardPreview } from "@/components/cards/card-preview";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
 import { slugify } from "@/lib/utils/slugify";
-import { RARITIES, RARITY_LABELS } from "@/lib/supabase/types";
-import type { Card, CardSet, Genre, Rarity, Trait } from "@/lib/supabase/types";
+import { CHAPTER_INFO_MAX_LENGTH, RARITIES, RARITY_LABELS } from "@/lib/supabase/types";
+import type { Card, CardSet, CardTemplate, Genre, Rarity, Trait } from "@/lib/supabase/types";
 import { createCard, updateCard } from "./actions";
+
+const PREVIEW_TABS = [
+  { key: "carta", label: "Carta" },
+  { key: "impresion", label: "Impresión" },
+  { key: "postal", label: "Postal" },
+] as const;
+type PreviewTab = (typeof PREVIEW_TABS)[number]["key"];
 
 export function CardForm({
   initialCard,
@@ -21,12 +28,14 @@ export function CardForm({
   genres,
   traits,
   initialPrintFrontPreviewUrl,
+  cardTemplate,
 }: {
   initialCard?: Card;
   sets: CardSet[];
   genres: Genre[];
   traits: Trait[];
   initialPrintFrontPreviewUrl?: string | null;
+  cardTemplate: CardTemplate | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -47,6 +56,27 @@ export function CardForm({
   const [frontPreview, setFrontPreview] = useState<string | null>(
     initialCard?.image_front_url ?? null,
   );
+  const [printFrontPreview, setPrintFrontPreview] = useState<string | null>(
+    initialPrintFrontPreviewUrl ?? null,
+  );
+
+  const [useCardNameAsDisplay, setUseCardNameAsDisplay] = useState(
+    initialCard?.use_card_name_as_display ?? true,
+  );
+  const [displayLine1, setDisplayLine1] = useState(initialCard?.display_line_1 ?? "");
+  const [displayLine2, setDisplayLine2] = useState(initialCard?.display_line_2 ?? "");
+  const [displayLine3, setDisplayLine3] = useState(initialCard?.display_line_3 ?? "");
+  const [showLine3, setShowLine3] = useState(Boolean(initialCard?.display_line_3));
+  const [chapterInfo, setChapterInfo] = useState(initialCard?.chapter_info ?? "");
+  const [applyArtTemplate, setApplyArtTemplate] = useState(
+    initialCard?.apply_art_template ?? true,
+  );
+  const [nameShadowIntensity, setNameShadowIntensity] = useState(
+    initialCard?.name_shadow_intensity ?? 50,
+  );
+  const [nameFontSize, setNameFontSize] = useState(initialCard?.name_font_size ?? 10);
+  const [nameLineHeight, setNameLineHeight] = useState(initialCard?.name_line_height ?? 110);
+  const [previewTab, setPreviewTab] = useState<PreviewTab>("carta");
 
   const selectedGenre = useMemo(
     () => genres.find((g) => g.id === genreId) ?? null,
@@ -203,10 +233,8 @@ export function CardForm({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField
-            label="Poder"
-            hint="Entero de 0 a 10. Oculto para el jugador (interno del motor de juego)."
-          >
+          <FormField label="Poder" hint="Entero de 0 a 10.">
+
             <input
               type="number"
               name="power"
@@ -235,6 +263,152 @@ export function CardForm({
             />
           </FormField>
         </div>
+
+        <fieldset className="flex flex-col gap-3 rounded-lg border border-marca-noche/10 p-4">
+          <legend className="px-1 text-sm font-bold uppercase tracking-wide text-marca-noche/60">
+            Plantilla de arte
+          </legend>
+
+          <CheckboxField
+            label="Aplicar la plantilla de carta (marco, íconos, Poder, Score)"
+            name="apply_art_template"
+            checked={applyArtTemplate}
+            onChange={setApplyArtTemplate}
+            hint="Desmárcalo solo para cartas especiales cuyo arte ya trae todo esto integrado."
+          />
+
+          <label className="flex flex-col gap-1">
+            <span className="flex items-center justify-between text-sm font-semibold text-marca-noche">
+              Sombra del texto de la carta
+              <span className="font-normal text-marca-noche/60">{nameShadowIntensity}</span>
+            </span>
+            <input
+              type="range"
+              name="name_shadow_intensity"
+              min={0}
+              max={100}
+              value={nameShadowIntensity}
+              onChange={(event) => setNameShadowIntensity(Number(event.target.value))}
+              className="w-full accent-marca-violeta"
+            />
+            <span className="text-xs text-marca-noche/60">
+              Por si el arte de fondo no deja leer bien el nombre.
+            </span>
+          </label>
+
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex flex-col gap-1">
+              <span className="flex items-center justify-between text-sm font-semibold text-marca-noche">
+                Tamaño del nombre
+                <span className="font-normal text-marca-noche/60">{nameFontSize}</span>
+              </span>
+              <input
+                type="range"
+                name="name_font_size"
+                min={2}
+                max={25}
+                step={0.5}
+                value={nameFontSize}
+                onChange={(event) => setNameFontSize(Number(event.target.value))}
+                className="w-full accent-marca-violeta"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="flex items-center justify-between text-sm font-semibold text-marca-noche">
+                Interlineado del nombre
+                <span className="font-normal text-marca-noche/60">{nameLineHeight}</span>
+              </span>
+              <input
+                type="range"
+                name="name_line_height"
+                min={50}
+                max={200}
+                step={5}
+                value={nameLineHeight}
+                onChange={(event) => setNameLineHeight(Number(event.target.value))}
+                className="w-full accent-marca-violeta"
+              />
+            </label>
+          </div>
+          <p className="text-xs text-marca-noche/60">
+            Ajústalos si el nombre de esta carta en particular queda muy grande, muy chico o muy
+            apretado dentro de la zona del nombre que definiste en /admin/ajustes.
+          </p>
+        </fieldset>
+
+        <fieldset className="flex flex-col gap-3 rounded-lg border border-marca-noche/10 p-4">
+          <legend className="px-1 text-sm font-bold uppercase tracking-wide text-marca-noche/60">
+            Texto del arte
+          </legend>
+
+          <CheckboxField
+            label="Usar el nombre de la carta como texto del arte"
+            name="use_card_name_as_display"
+            checked={useCardNameAsDisplay}
+            onChange={(checked) => {
+              setUseCardNameAsDisplay(checked);
+              if (!checked && !displayLine1 && !displayLine2 && !displayLine3) {
+                setDisplayLine1(name);
+              }
+            }}
+          />
+
+          {!useCardNameAsDisplay && (
+            <div className="flex flex-col gap-3">
+              <FormField label="Línea 1">
+                <input
+                  type="text"
+                  name="display_line_1"
+                  value={displayLine1}
+                  onChange={(event) => setDisplayLine1(event.target.value)}
+                  className={fieldInputClass}
+                />
+              </FormField>
+              <FormField label="Línea 2">
+                <input
+                  type="text"
+                  name="display_line_2"
+                  value={displayLine2}
+                  onChange={(event) => setDisplayLine2(event.target.value)}
+                  className={fieldInputClass}
+                />
+              </FormField>
+              {showLine3 ? (
+                <FormField label="Línea 3">
+                  <input
+                    type="text"
+                    name="display_line_3"
+                    value={displayLine3}
+                    onChange={(event) => setDisplayLine3(event.target.value)}
+                    className={fieldInputClass}
+                  />
+                </FormField>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowLine3(true)}
+                  className="self-start text-sm font-semibold text-marca-violeta hover:underline"
+                >
+                  + Agregar línea 3 (poco común)
+                </button>
+              )}
+            </div>
+          )}
+
+          <FormField label="Texto de capítulo">
+            <textarea
+              name="chapter_info"
+              rows={2}
+              maxLength={CHAPTER_INFO_MAX_LENGTH}
+              value={chapterInfo}
+              onChange={(event) => setChapterInfo(event.target.value)}
+              className={fieldInputClass}
+            />
+            <span className="self-end text-xs text-marca-noche/50">
+              {chapterInfo.length}/{CHAPTER_INFO_MAX_LENGTH}
+            </span>
+          </FormField>
+        </fieldset>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField label="Fecha de lanzamiento">
@@ -293,6 +467,9 @@ export function CardForm({
               name="print_front"
               initialPreviewUrl={initialPrintFrontPreviewUrl ?? null}
               hint="No se muestra a jugadores."
+              onFileChange={(file) => {
+                if (file) setPrintFrontPreview(URL.createObjectURL(file));
+              }}
             />
           </div>
         </fieldset>
@@ -312,18 +489,61 @@ export function CardForm({
       </form>
 
       <div className="flex flex-col gap-2 lg:sticky lg:top-6 lg:self-start">
-        <span className="text-sm font-bold uppercase tracking-wide text-marca-noche/60">
-          Así la va a ver el jugador
-        </span>
-        <CardPreview
-          imageUrl={frontPreview}
-          name={name}
-          rarity={rarity}
-          score={score}
-          genre={selectedGenre}
-          trait={selectedTrait}
-          artist={artist}
-        />
+        <div className="flex gap-2">
+          {PREVIEW_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setPreviewTab(tab.key)}
+              className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors ${
+                previewTab === tab.key
+                  ? "border-marca-violeta bg-marca-violeta text-white"
+                  : "border-marca-noche/20 hover:bg-marca-noche/5"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-marca-noche/60">
+          {previewTab === "carta" && "Cómo se ve la carta en toda la colección del juego."}
+          {previewTab === "impresion" && "Cómo sale la carta en la hoja de impresión normal."}
+          {previewTab === "postal" && "Cómo sale la carta en la hoja de postal."}
+        </p>
+
+        <div className="relative aspect-[5/7] w-full overflow-hidden rounded-xl border-2 border-marca-noche/10 bg-marca-noche/5 shadow-sm">
+          {(previewTab === "carta" ? frontPreview : printFrontPreview ?? frontPreview) ? (
+            // eslint-disable-next-line @next/next/no-img-element -- preview de un archivo local (object URL) o remoto, sin necesidad de optimización
+            <img
+              src={(previewTab === "carta" ? frontPreview : printFrontPreview ?? frontPreview) ?? undefined}
+              alt={name || "Carta"}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs text-marca-noche/40">
+              Sin imagen
+            </div>
+          )}
+          <CardArtOverlay
+            variant={previewTab === "carta" ? "coleccion" : previewTab}
+            template={cardTemplate}
+            applyArtTemplate={applyArtTemplate}
+            name={name}
+            useCardNameAsDisplay={useCardNameAsDisplay}
+            displayLine1={displayLine1}
+            displayLine2={displayLine2}
+            displayLine3={displayLine3}
+            nameShadowIntensity={nameShadowIntensity}
+            nameFontSize={nameFontSize}
+            nameLineHeight={nameLineHeight}
+            power={power}
+            score={score}
+            genre={selectedGenre}
+            trait={selectedTrait}
+            chapterInfo={chapterInfo}
+            artist={artist}
+          />
+        </div>
       </div>
     </div>
   );

@@ -2,7 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { CollectionGrid } from "./collection-grid";
 import { WelcomeModal } from "@/components/coleccion/welcome-modal";
 import { sortCardsBySet } from "@/lib/utils/sort-cards-by-set";
-import type { Card, CardSet, CollectionCard, Genre, Trait, TradeDefault } from "@/lib/supabase/types";
+import type {
+  Card,
+  CardSet,
+  CardTemplate,
+  CollectionCard,
+  GameSettings,
+  Genre,
+  Trait,
+  TradeDefault,
+} from "@/lib/supabase/types";
 
 export default async function ColeccionPage() {
   const supabase = await createClient();
@@ -15,13 +24,14 @@ export default async function ColeccionPage() {
     { data: sets },
     { data: genres },
     { data: traits },
+    { data: settings },
     { data: userCards },
     { data: profile },
   ] = await Promise.all([
       supabase
         .from("cards")
         .select(
-          "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom",
+          "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom, use_card_name_as_display, display_line_1, display_line_2, display_line_3, chapter_info, apply_art_template, name_shadow_intensity, name_font_size, name_line_height",
         )
         .eq("is_active", true)
         .order("sort_order"),
@@ -32,13 +42,14 @@ export default async function ColeccionPage() {
       supabase
         .from("genres")
         .select(
-          "id, slug, name, sort_order, base_ability_name, base_ability_text, fandom_ability_name, fandom_ability_text",
+          "id, slug, name, sort_order, base_ability_name, base_ability_text, fandom_ability_name, fandom_ability_text, color_hex, icon_url",
         )
         .order("sort_order"),
       supabase
         .from("traits")
-        .select("id, slug, name, sort_order, ability_name, ability_text")
+        .select("id, slug, name, sort_order, ability_name, ability_text, color_hex, icon_url")
         .order("sort_order"),
+      supabase.from("game_settings").select("card_template").eq("id", true).single(),
       // RLS ya limita esto a las propias filas, pero el filtro explícito deja
       // la intención clara en el código y evita depender solo de la policy.
       supabase.from("user_cards").select("card_id, quantity").eq("user_id", user!.id),
@@ -72,6 +83,7 @@ export default async function ColeccionPage() {
         sets={typedSets}
         genres={(genres as Genre[] | null) ?? []}
         traits={(traits as Trait[] | null) ?? []}
+        cardTemplate={(settings as GameSettings | null)?.card_template as CardTemplate | null}
         initialTradeDefault={(profile?.trade_default as TradeDefault) ?? "publicas"}
       />
     </main>

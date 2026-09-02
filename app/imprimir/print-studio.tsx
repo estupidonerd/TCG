@@ -4,17 +4,23 @@ import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { getPrintAssets, type PrintAssets } from "./actions";
 import { PrintSheet, PAGE_SIZES } from "@/components/imprimir/print-sheet";
+import { PostalSheet } from "@/components/imprimir/postal-sheet";
 import { EmptyState } from "@/components/ui/empty-state";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
+import type { CardTemplate } from "@/lib/supabase/types";
 import type { OwnedPrintableCard } from "./page";
 
 type PageSizeKey = keyof typeof PAGE_SIZES;
+type PrintMode = "carta" | "postal";
 
 export function PrintStudio({
   ownedCards,
   initialSelectedSlug,
+  cardTemplate,
 }: {
   ownedCards: OwnedPrintableCard[];
   initialSelectedSlug: string | null;
+  cardTemplate: CardTemplate | null;
 }) {
   const initialSelected = useMemo(() => {
     const set = new Set<string>();
@@ -27,6 +33,7 @@ export function PrintStudio({
 
   const [selected, setSelected] = useState<Set<string>>(initialSelected);
   const [pageSize, setPageSize] = useState<PageSizeKey>("a4");
+  const [printMode, setPrintMode] = useState<PrintMode>("carta");
   const [assets, setAssets] = useState<PrintAssets | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +111,18 @@ export function PrintStudio({
             </span>
 
             <label className="ml-auto flex items-center gap-2 text-sm font-semibold">
+              Imprimir:
+              <select
+                value={printMode}
+                onChange={(event) => setPrintMode(event.target.value as PrintMode)}
+                className="rounded-lg border border-marca-noche/20 px-2 py-1.5"
+              >
+                <option value="carta">Imprimir carta</option>
+                <option value="postal">Imprimir postal</option>
+              </select>
+            </label>
+
+            <label className="flex items-center gap-2 text-sm font-semibold">
               Hoja:
               <select
                 value={pageSize}
@@ -133,13 +152,34 @@ export function PrintStudio({
                   }`}
                 >
                   {card.image_front_url ? (
-                    <Image
-                      src={card.image_front_url}
-                      alt={card.name}
-                      fill
-                      sizes="150px"
-                      className="object-cover"
-                    />
+                    <>
+                      <Image
+                        src={card.image_front_url}
+                        alt={card.name}
+                        fill
+                        sizes="150px"
+                        className="object-cover"
+                        draggable={false}
+                        onContextMenu={(event) => event.preventDefault()}
+                      />
+                      <CardArtOverlay
+                        variant="coleccion"
+                        template={cardTemplate}
+                        applyArtTemplate={card.apply_art_template}
+                        name={card.name}
+                        useCardNameAsDisplay={card.use_card_name_as_display}
+                        displayLine1={card.display_line_1}
+                        displayLine2={card.display_line_2}
+                        displayLine3={card.display_line_3}
+                        nameShadowIntensity={card.name_shadow_intensity}
+                        nameFontSize={card.name_font_size}
+                        nameLineHeight={card.name_line_height}
+                        power={card.power}
+                        score={card.score}
+                        genre={card.genre}
+                        trait={card.trait}
+                      />
+                    </>
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gray-400 text-white">
                       ?
@@ -195,7 +235,21 @@ export function PrintStudio({
             pegamento.
           </p>
 
-          <PrintSheet cards={assets.cards} backUrl={assets.backUrl} pageSize={PAGE_SIZES[pageSize]} />
+          {printMode === "carta" ? (
+            <PrintSheet
+              cards={assets.cards}
+              backUrl={assets.backUrl}
+              cardTemplate={assets.cardTemplate}
+              pageSize={PAGE_SIZES[pageSize]}
+            />
+          ) : (
+            <PostalSheet
+              cards={assets.cards}
+              backUrl={assets.postalBackUrl}
+              cardTemplate={assets.cardTemplate}
+              pageSize={PAGE_SIZES[pageSize]}
+            />
+          )}
         </>
       )}
     </div>

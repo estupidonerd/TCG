@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CardForm } from "../card-form";
-import type { Card, CardSet, Genre, Trait } from "@/lib/supabase/types";
+import type { Card, CardSet, CardTemplate, GameSettings, Genre, Trait } from "@/lib/supabase/types";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 10;
 
@@ -14,12 +14,12 @@ export default async function EditCardPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: card }, { data: sets }, { data: genres }, { data: traits }] =
+  const [{ data: card }, { data: sets }, { data: genres }, { data: traits }, { data: settings }] =
     await Promise.all([
       supabase
         .from("cards")
         .select(
-          "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom",
+          "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom, use_card_name_as_display, display_line_1, display_line_2, display_line_3, chapter_info, apply_art_template, name_shadow_intensity, name_font_size, name_line_height",
         )
         .eq("id", id)
         .single(),
@@ -29,12 +29,15 @@ export default async function EditCardPage({
         .order("name"),
       supabase
         .from("genres")
-        .select("id, slug, name, sort_order, base_ability_name, base_ability_text, fandom_ability_name, fandom_ability_text")
+        .select(
+          "id, slug, name, sort_order, base_ability_name, base_ability_text, fandom_ability_name, fandom_ability_text, color_hex, icon_url",
+        )
         .order("sort_order"),
       supabase
         .from("traits")
-        .select("id, slug, name, sort_order, ability_name, ability_text")
+        .select("id, slug, name, sort_order, ability_name, ability_text, color_hex, icon_url")
         .order("sort_order"),
+      supabase.from("game_settings").select("card_template").eq("id", true).single(),
     ]);
 
   if (!card) notFound();
@@ -62,6 +65,7 @@ export default async function EditCardPage({
         genres={(genres as Genre[] | null) ?? []}
         traits={(traits as Trait[] | null) ?? []}
         initialPrintFrontPreviewUrl={printFrontSigned?.data?.signedUrl ?? null}
+        cardTemplate={(settings as GameSettings | null)?.card_template as CardTemplate | null}
       />
     </div>
   );

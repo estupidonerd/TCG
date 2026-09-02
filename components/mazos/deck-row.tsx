@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { CardArtOverlay } from "@/components/cards/card-art-overlay";
+import type { CardTemplate, Genre, Trait } from "@/lib/supabase/types";
 
 export function copyLimit(power: number | null): number {
   const p = power ?? 5;
@@ -23,6 +25,17 @@ export type DeckRowCard = {
   name: string;
   image_front_url: string | null;
   power: number | null;
+  score: number | null;
+  use_card_name_as_display: boolean;
+  display_line_1: string | null;
+  display_line_2: string | null;
+  display_line_3: string | null;
+  apply_art_template: boolean;
+  name_shadow_intensity: number;
+  name_font_size: number;
+  name_line_height: number;
+  genre: Pick<Genre, "color_hex" | "icon_url"> | null;
+  trait: Pick<Trait, "color_hex" | "icon_url"> | null;
   owned: number;
 };
 
@@ -35,6 +48,7 @@ export function DeckRow({
   card,
   genreName,
   traitName,
+  cardTemplate,
   quantity,
   max,
   onChange,
@@ -42,6 +56,7 @@ export function DeckRow({
   card: DeckRowCard;
   genreName: string | null;
   traitName: string | null;
+  cardTemplate: CardTemplate | null;
   quantity: number;
   max: number;
   onChange: (next: number) => void;
@@ -62,7 +77,34 @@ export function DeckRow({
         className="relative h-14 w-10 shrink-0 overflow-hidden rounded border border-marca-noche/10 bg-gray-200"
       >
         {card.image_front_url ? (
-          <Image src={card.image_front_url} alt={card.name} fill sizes="40px" className="object-cover" />
+          <>
+            <Image
+              src={card.image_front_url}
+              alt={card.name}
+              fill
+              sizes="40px"
+              className="object-cover"
+              draggable={false}
+              onContextMenu={(event) => event.preventDefault()}
+            />
+            <CardArtOverlay
+              variant="coleccion"
+              template={cardTemplate}
+              applyArtTemplate={card.apply_art_template}
+              name={card.name}
+              useCardNameAsDisplay={card.use_card_name_as_display}
+              displayLine1={card.display_line_1}
+              displayLine2={card.display_line_2}
+              displayLine3={card.display_line_3}
+              nameShadowIntensity={card.name_shadow_intensity}
+              nameFontSize={card.name_font_size}
+              nameLineHeight={card.name_line_height}
+              power={card.power}
+              score={card.score}
+              genre={card.genre}
+              trait={card.trait}
+            />
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-400 text-[10px] text-white">
             ?
