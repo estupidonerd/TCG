@@ -249,7 +249,7 @@ export function CardForm({
 
           <FormField
             label="Puntaje"
-            hint='De 0 a 10, admite un decimal (ej. 7.8). Esto es lo que ve el jugador. Opcional: vacío muestra "SP".'
+            hint='De 0 a 10, admite un decimal (ej. 7.8). Esto es lo que ve el jugador. Opcional: vacío muestra "X".'
           >
             <input
               type="number"

@@ -289,7 +289,7 @@ export function CardDetail({
                   Puntaje
                 </p>
                 <p className="text-3xl font-bold leading-none">
-                  {card.score !== null ? card.score.toFixed(1) : "SP"}
+                  {card.score !== null ? card.score.toFixed(1) : "X"}
                 </p>
               </div>
             </div>
@@ -303,7 +303,7 @@ export function CardDetail({
                   Poder
                 </p>
                 <p className="text-3xl font-bold leading-none">
-                  {card.power !== null ? card.power : "SP"}
+                  {card.power !== null ? card.power : "X"}
                 </p>
               </div>
             </div>

@@ -54,7 +54,7 @@ function parseCardFields(formData: FormData) {
   }
 
   // Puntaje es opcional -- a diferencia de Poder, no se exige. Si viene
-  // vacío queda null y el jugador ve "SP".
+  // vacío queda null y el jugador ve "X".
   let score: number | null = null;
   if (scoreRaw !== "") {
     const parsedScore = Number(scoreRaw);

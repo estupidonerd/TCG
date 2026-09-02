@@ -122,8 +122,9 @@ export function CardArtOverlay({
           />
 
           {/* Score: siempre visible, abajo-izquierda, color del Género. Sin
-              sombra -- el color se elige a mano para que ya se lea bien. */}
-          {score !== null && score !== undefined && genreColor && (
+              sombra -- el color se elige a mano para que ya se lea bien.
+              Sin puntaje asignado, muestra "X" en vez de no mostrar nada. */}
+          {genreColor && (
             <span
               className="absolute font-card-name font-black leading-none"
               style={{
@@ -135,13 +136,13 @@ export function CardArtOverlay({
                 transformOrigin: "bottom left",
               }}
             >
-              {score.toFixed(1)}
+              {score !== null && score !== undefined ? score.toFixed(1) : "X"}
             </span>
           )}
 
           {/* Poder: visible siempre, como cualquier otro dato de la carta.
-              Color del Género, sin sombra. */}
-          {power !== null && power !== undefined && genreColor && (
+              Color del Género, sin sombra. Sin poder asignado, "X". */}
+          {genreColor && (
             <span
               className="absolute font-card-name font-black leading-none"
               style={{
@@ -153,7 +154,7 @@ export function CardArtOverlay({
                 transformOrigin: "top right",
               }}
             >
-              {power}
+              {power !== null && power !== undefined ? power : "X"}
             </span>
           )}
         </>
