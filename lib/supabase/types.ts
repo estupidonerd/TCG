@@ -131,6 +131,27 @@ export type Card = {
   name_shadow_intensity: number;
   name_font_size: number;
   name_line_height: number;
+  // Si no es null, esta carta es una variante de otra (id de la carta
+  // base). En /coleccion, una variante que el jugador no tiene no aparece
+  // en absoluto hasta que consigue al menos 1 copia.
+  variant_of: string | null;
+};
+
+// Datos de la carta base que se usan para prellenar el formulario al crear
+// una variante -- deliberadamente NO incluye rarity, image_front_url ni
+// print_front_url (eso es justo lo que cambia en la variante).
+export type BaseCardOption = {
+  id: string;
+  name: string;
+  description: string | null;
+  chapter_info: string | null;
+  genre_id: string | null;
+  trait_id: string | null;
+  power: number | null;
+  score: number | null;
+  set_id: string;
+  sort_order: number;
+  released_at: string | null;
 };
 
 // Límite de chapter_info: calculado (no inventado) midiendo con Titillium Web

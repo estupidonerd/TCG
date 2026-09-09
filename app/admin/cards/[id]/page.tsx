@@ -2,7 +2,15 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CardForm } from "../card-form";
-import type { Card, CardSet, CardTemplate, GameSettings, Genre, Trait } from "@/lib/supabase/types";
+import type {
+  BaseCardOption,
+  Card,
+  CardSet,
+  CardTemplate,
+  GameSettings,
+  Genre,
+  Trait,
+} from "@/lib/supabase/types";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 10;
 
@@ -14,12 +22,18 @@ export default async function EditCardPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: card }, { data: sets }, { data: genres }, { data: traits }, { data: settings }] =
-    await Promise.all([
+  const [
+    { data: card },
+    { data: sets },
+    { data: genres },
+    { data: traits },
+    { data: settings },
+    { data: baseCards },
+  ] = await Promise.all([
       supabase
         .from("cards")
         .select(
-          "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom, use_card_name_as_display, display_line_1, display_line_2, display_line_3, chapter_info, apply_art_template, name_shadow_intensity, name_font_size, name_line_height",
+          "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom, use_card_name_as_display, display_line_1, display_line_2, display_line_3, chapter_info, apply_art_template, name_shadow_intensity, name_font_size, name_line_height, variant_of",
         )
         .eq("id", id)
         .single(),
@@ -38,6 +52,16 @@ export default async function EditCardPage({
         .select("id, slug, name, sort_order, ability_name, ability_text, color_hex, icon_url")
         .order("sort_order"),
       supabase.from("game_settings").select("card_template").eq("id", true).single(),
+      // Excluye la carta que se está editando: no puede ser variante de sí
+      // misma (la base también lo rechaza con un check constraint, esto
+      // solo evita que aparezca como opción elegible en el buscador).
+      supabase
+        .from("cards")
+        .select(
+          "id, name, description, chapter_info, genre_id, trait_id, power, score, set_id, sort_order, released_at",
+        )
+        .neq("id", id)
+        .order("name"),
     ]);
 
   if (!card) notFound();
@@ -64,6 +88,7 @@ export default async function EditCardPage({
         sets={(sets as CardSet[] | null) ?? []}
         genres={(genres as Genre[] | null) ?? []}
         traits={(traits as Trait[] | null) ?? []}
+        baseCardOptions={(baseCards as BaseCardOption[] | null) ?? []}
         initialPrintFrontPreviewUrl={printFrontSigned?.data?.signedUrl ?? null}
         cardTemplate={(settings as GameSettings | null)?.card_template as CardTemplate | null}
       />

@@ -31,7 +31,7 @@ export default async function ColeccionPage() {
       supabase
         .from("cards")
         .select(
-          "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom, use_card_name_as_display, display_line_1, display_line_2, display_line_3, chapter_info, apply_art_template, name_shadow_intensity, name_font_size, name_line_height",
+          "id, set_id, slug, name, description, rarity, image_front_url, print_front_url, artist, is_active, released_at, sort_order, genre_id, trait_id, power, score, is_fandom, use_card_name_as_display, display_line_1, display_line_2, display_line_3, chapter_info, apply_art_template, name_shadow_intensity, name_font_size, name_line_height, variant_of",
         )
         .eq("is_active", true)
         .order("sort_order"),
@@ -70,10 +70,18 @@ export default async function ColeccionPage() {
   // de distintos sets de forma arbitraria.
   const orderedCards = sortCardsBySet((cards as Card[] | null) ?? [], typedSets);
 
-  const collectionCards: CollectionCard[] = orderedCards.map((card) => ({
-    ...card,
-    quantity: quantityByCard.get(card.id) ?? 0,
-  }));
+  // Una variante (variant_of no nulo) que el jugador todavía no tiene no
+  // aparece en absoluto -- ni como silueta -- y no cuenta en el total de
+  // arriba. Filtrar acá (no solo en el cliente) alcanza para las dos cosas
+  // a la vez: ni el array ni su .length incluyen esa carta hasta que se
+  // consigue al menos 1 copia. Las cartas con variant_of null (el caso de
+  // siempre) nunca se filtran, sin importar su rareza.
+  const collectionCards: CollectionCard[] = orderedCards
+    .map((card) => ({
+      ...card,
+      quantity: quantityByCard.get(card.id) ?? 0,
+    }))
+    .filter((card) => card.variant_of === null || card.quantity > 0);
 
   return (
     <main className="min-h-svh px-4 py-8 sm:px-6">

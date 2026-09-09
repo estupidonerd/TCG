@@ -9,10 +9,19 @@ import {
 } from "@/components/admin/form-field";
 import { SubmitButton, ErrorMessage } from "@/components/admin/submit-button";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { CardPickerField } from "@/components/admin/card-picker-field";
 import { CardArtOverlay } from "@/components/cards/card-art-overlay";
 import { slugify } from "@/lib/utils/slugify";
 import { CHAPTER_INFO_MAX_LENGTH, RARITIES, RARITY_LABELS } from "@/lib/supabase/types";
-import type { Card, CardSet, CardTemplate, Genre, Rarity, Trait } from "@/lib/supabase/types";
+import type {
+  BaseCardOption,
+  Card,
+  CardSet,
+  CardTemplate,
+  Genre,
+  Rarity,
+  Trait,
+} from "@/lib/supabase/types";
 import { createCard, updateCard } from "./actions";
 
 const PREVIEW_TABS = [
@@ -27,6 +36,7 @@ export function CardForm({
   sets,
   genres,
   traits,
+  baseCardOptions,
   initialPrintFrontPreviewUrl,
   cardTemplate,
 }: {
@@ -34,6 +44,7 @@ export function CardForm({
   sets: CardSet[];
   genres: Genre[];
   traits: Trait[];
+  baseCardOptions: BaseCardOption[];
   initialPrintFrontPreviewUrl?: string | null;
   cardTemplate: CardTemplate | null;
 }) {
@@ -44,6 +55,12 @@ export function CardForm({
   const [slug, setSlug] = useState(initialCard?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(initialCard));
   const [name, setName] = useState(initialCard?.name ?? "");
+  const [description, setDescription] = useState(initialCard?.description ?? "");
+  const [setId, setSetId] = useState(initialCard?.set_id ?? "");
+  const [sortOrder, setSortOrder] = useState(initialCard?.sort_order ?? 0);
+  const [releasedAt, setReleasedAt] = useState(initialCard?.released_at?.slice(0, 10) ?? "");
+  const [isVariant, setIsVariant] = useState(Boolean(initialCard?.variant_of));
+  const [variantOf, setVariantOf] = useState(initialCard?.variant_of ?? "");
   const [rarity, setRarity] = useState<Rarity>(initialCard?.rarity ?? "comun");
   const [genreId, setGenreId] = useState(initialCard?.genre_id ?? "");
   const [traitId, setTraitId] = useState(initialCard?.trait_id ?? "");
@@ -88,6 +105,30 @@ export function CardForm({
   );
   const score = scoreInput.trim() === "" ? null : Number(scoreInput);
 
+  // Prellenar desde la carta base es solo un punto de partida para una
+  // carta NUEVA -- si ya se está editando una carta existente, cambiar de
+  // qué carta es variante no debería pisarle encima los datos que el admin
+  // ya ajustó a mano. A propósito no toca rarity, image_front_url ni
+  // print_front_url: eso es justo lo que cambia en la variante.
+  const handlePickBaseCard = (id: string) => {
+    setVariantOf(id);
+    if (initialCard) return;
+
+    const base = baseCardOptions.find((c) => c.id === id);
+    if (!base) return;
+
+    setName(base.name);
+    setDescription(base.description ?? "");
+    setChapterInfo(base.chapter_info ?? "");
+    setGenreId(base.genre_id ?? "");
+    setTraitId(base.trait_id ?? "");
+    setPower(base.power ?? 0);
+    setScoreInput(base.score != null ? String(base.score) : "");
+    setSetId(base.set_id);
+    setSortOrder(base.sort_order);
+    setReleasedAt(base.released_at?.slice(0, 10) ?? "");
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -111,11 +152,44 @@ export function CardForm({
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <ErrorMessage message={error} />
 
+        <fieldset className="flex flex-col gap-3 rounded-lg border border-marca-noche/10 p-4">
+          <legend className="px-1 text-sm font-bold uppercase tracking-wide text-marca-noche/60">
+            Variante
+          </legend>
+
+          <input type="hidden" name="variant_of" value={isVariant ? variantOf : ""} />
+
+          <CheckboxField
+            label="Es variante de otra carta"
+            name="is_variant_checkbox"
+            checked={isVariant}
+            onChange={(checked) => {
+              setIsVariant(checked);
+              if (!checked) setVariantOf("");
+            }}
+            hint={
+              initialCard
+                ? "Cambiar la carta base acá solo actualiza a cuál es variante -- no vuelve a prellenar los demás campos."
+                : 'Prellena nombre, descripción, capítulo, género, rasgo, poder, puntaje, expansión, orden y fecha de lanzamiento desde la carta base. Rareza e imágenes quedan en blanco a propósito, y todo lo prellenado se puede editar antes de guardar.'
+            }
+          />
+
+          {isVariant && (
+            <CardPickerField
+              cards={baseCardOptions}
+              value={variantOf}
+              onChange={handlePickBaseCard}
+              placeholder="Buscar la carta base por nombre…"
+            />
+          )}
+        </fieldset>
+
         <FormField label="Expansión">
           <select
             name="set_id"
             required
-            defaultValue={initialCard?.set_id ?? ""}
+            value={setId}
+            onChange={(event) => setSetId(event.target.value)}
             className={fieldInputClass}
           >
             <option value="" disabled>
@@ -160,7 +234,8 @@ export function CardForm({
           <textarea
             name="description"
             rows={2}
-            defaultValue={initialCard?.description ?? ""}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
             className={fieldInputClass}
           />
         </FormField>
@@ -415,7 +490,8 @@ export function CardForm({
             <input
               type="date"
               name="released_at"
-              defaultValue={initialCard?.released_at?.slice(0, 10)}
+              value={releasedAt}
+              onChange={(event) => setReleasedAt(event.target.value)}
               className={fieldInputClass}
             />
           </FormField>
@@ -424,7 +500,8 @@ export function CardForm({
             <input
               type="number"
               name="sort_order"
-              defaultValue={initialCard?.sort_order ?? 0}
+              value={sortOrder}
+              onChange={(event) => setSortOrder(Number(event.target.value))}
               className={fieldInputClass}
             />
           </FormField>

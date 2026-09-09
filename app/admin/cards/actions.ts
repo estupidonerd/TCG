@@ -42,6 +42,7 @@ function parseCardFields(formData: FormData) {
   const nameShadowIntensity = Number(formData.get("name_shadow_intensity") ?? 50);
   const nameFontSize = Number(formData.get("name_font_size") ?? 10);
   const nameLineHeight = Number(formData.get("name_line_height") ?? 110);
+  const variantOf = String(formData.get("variant_of") ?? "").trim();
 
   if (!name) throw new Error("El nombre es obligatorio.");
   if (!setId) throw new Error("Elige una expansión.");
@@ -103,6 +104,7 @@ function parseCardFields(formData: FormData) {
     name_shadow_intensity: nameShadowIntensity,
     name_font_size: nameFontSize,
     name_line_height: nameLineHeight,
+    variant_of: variantOf || null,
   };
 }
 
