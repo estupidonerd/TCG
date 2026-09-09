@@ -5,12 +5,15 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { RARITIES, RARITY_LABELS } from "@/lib/supabase/types";
 import type { Card, CardSet } from "@/lib/supabase/types";
 
+type SortMode = "name" | "orden";
+
 export default async function AdminCardsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ set?: string; rarity?: string }>;
+  searchParams: Promise<{ set?: string; rarity?: string; q?: string; sort?: string }>;
 }) {
-  const { set: setFilter, rarity: rarityFilter } = await searchParams;
+  const { set: setFilter, rarity: rarityFilter, q, sort } = await searchParams;
+  const sortMode: SortMode = sort === "orden" ? "orden" : "name";
   const supabase = await createClient();
 
   const { data: sets } = await supabase
@@ -25,22 +28,29 @@ export default async function AdminCardsPage({
 
   if (setFilter) query = query.eq("set_id", setFilter);
   if (rarityFilter) query = query.eq("rarity", rarityFilter);
+  if (q?.trim()) query = query.ilike("name", `%${q.trim()}%`);
 
   const { data: cards } = await query;
 
   const typedSets = (sets as CardSet[] | null) ?? [];
   const setsById = new Map(typedSets.map((s) => [s.id, s]));
 
-  // Agrupadas por expansión (en el mismo orden que el filtro de arriba),
-  // alfabético por nombre adentro de cada una -- sort_order no participa acá
-  // a propósito, esa columna es para el orden que ve el jugador en
-  // /coleccion, no para navegar el catálogo en el admin.
+  // Agrupadas por expansión (alfabético, mismo orden que el selector de
+  // arriba), y adentro de cada una por nombre o por el número interno
+  // (sort_order) según lo que se elija -- sort_order es el orden que ve el
+  // jugador en /coleccion, acá es solo una forma más de navegar el catálogo,
+  // no la que manda por defecto.
   const typedCards = (cards as Card[] | null) ?? [];
   const cardsBySet = new Map<string, Card[]>();
   for (const card of typedCards) {
     const list = cardsBySet.get(card.set_id) ?? [];
     list.push(card);
     cardsBySet.set(card.set_id, list);
+  }
+  if (sortMode === "orden") {
+    for (const list of cardsBySet.values()) {
+      list.sort((a, b) => a.sort_order - b.sort_order);
+    }
   }
   const knownSetIds = new Set(typedSets.map((s) => s.id));
   const orderedCards = [
@@ -61,6 +71,13 @@ export default async function AdminCardsPage({
       </div>
 
       <form method="get" className="flex flex-wrap gap-3">
+        <input
+          type="text"
+          name="q"
+          defaultValue={q ?? ""}
+          placeholder="Buscar carta por nombre…"
+          className={`${fieldInputClass} w-full sm:w-56`}
+        />
         <select name="set" defaultValue={setFilter ?? ""} className={fieldInputClass}>
           <option value="">Todas las expansiones</option>
           {typedSets.map((s) => (
@@ -76,6 +93,10 @@ export default async function AdminCardsPage({
               {RARITY_LABELS[r]}
             </option>
           ))}
+        </select>
+        <select name="sort" defaultValue={sortMode} className={fieldInputClass}>
+          <option value="name">Ordenar por nombre</option>
+          <option value="orden">Ordenar por número interno</option>
         </select>
         <button
           type="submit"
