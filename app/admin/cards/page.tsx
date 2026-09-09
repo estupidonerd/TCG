@@ -78,7 +78,7 @@ export default async function AdminCardsPage({
           placeholder="Buscar carta por nombre…"
           className={`${fieldInputClass} w-full sm:w-56`}
         />
-        <select name="set" defaultValue={setFilter ?? ""} className={fieldInputClass}>
+        <select name="set" defaultValue={setFilter ?? ""} className={`${fieldInputClass} w-full sm:w-auto`}>
           <option value="">Todas las expansiones</option>
           {typedSets.map((s) => (
             <option key={s.id} value={s.id}>
@@ -86,7 +86,11 @@ export default async function AdminCardsPage({
             </option>
           ))}
         </select>
-        <select name="rarity" defaultValue={rarityFilter ?? ""} className={fieldInputClass}>
+        <select
+          name="rarity"
+          defaultValue={rarityFilter ?? ""}
+          className={`${fieldInputClass} w-full sm:w-auto`}
+        >
           <option value="">Todas las rarezas</option>
           {RARITIES.map((r) => (
             <option key={r} value={r}>
@@ -94,13 +98,13 @@ export default async function AdminCardsPage({
             </option>
           ))}
         </select>
-        <select name="sort" defaultValue={sortMode} className={fieldInputClass}>
+        <select name="sort" defaultValue={sortMode} className={`${fieldInputClass} w-full sm:w-auto`}>
           <option value="name">Ordenar por nombre</option>
           <option value="orden">Ordenar por número interno</option>
         </select>
         <button
           type="submit"
-          className="rounded border border-marca-noche/20 px-4 py-2 text-sm font-semibold text-marca-noche"
+          className="w-full rounded border border-marca-noche/20 px-4 py-2 text-sm font-semibold text-marca-noche sm:w-auto"
         >
           Filtrar
         </button>
