@@ -21,7 +21,7 @@ export default async function AdminCardsPage({
   let query = supabase
     .from("cards")
     .select("id, set_id, slug, name, rarity, image_front_url, is_active, sort_order")
-    .order("sort_order", { ascending: true });
+    .order("name", { ascending: true });
 
   if (setFilter) query = query.eq("set_id", setFilter);
   if (rarityFilter) query = query.eq("rarity", rarityFilter);
@@ -30,6 +30,23 @@ export default async function AdminCardsPage({
 
   const typedSets = (sets as CardSet[] | null) ?? [];
   const setsById = new Map(typedSets.map((s) => [s.id, s]));
+
+  // Agrupadas por expansión (en el mismo orden que el filtro de arriba),
+  // alfabético por nombre adentro de cada una -- sort_order no participa acá
+  // a propósito, esa columna es para el orden que ve el jugador en
+  // /coleccion, no para navegar el catálogo en el admin.
+  const typedCards = (cards as Card[] | null) ?? [];
+  const cardsBySet = new Map<string, Card[]>();
+  for (const card of typedCards) {
+    const list = cardsBySet.get(card.set_id) ?? [];
+    list.push(card);
+    cardsBySet.set(card.set_id, list);
+  }
+  const knownSetIds = new Set(typedSets.map((s) => s.id));
+  const orderedCards = [
+    ...typedSets.flatMap((set) => cardsBySet.get(set.id) ?? []),
+    ...typedCards.filter((card) => !knownSetIds.has(card.set_id)),
+  ];
 
   return (
     <div className="flex flex-col gap-4">
@@ -69,7 +86,7 @@ export default async function AdminCardsPage({
       </form>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {((cards as Card[] | null) ?? []).map((card) => (
+        {orderedCards.map((card) => (
           <Link
             key={card.id}
             href={`/admin/cards/${card.id}`}
@@ -94,7 +111,7 @@ export default async function AdminCardsPage({
             </div>
           </Link>
         ))}
-        {(!cards || cards.length === 0) && (
+        {orderedCards.length === 0 && (
           <div className="col-span-full">
             <EmptyState icon="🃏" message="No hay cartas con esos filtros." compact />
           </div>
