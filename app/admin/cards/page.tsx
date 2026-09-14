@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { fieldInputClass } from "@/components/admin/form-field";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -117,13 +118,14 @@ export default async function AdminCardsPage({
             href={`/admin/cards/${card.id}`}
             className="flex gap-3 rounded-lg border border-marca-noche/10 bg-white p-3 transition-colors hover:border-marca-violeta"
           >
-            <div className="h-16 w-16 shrink-0 overflow-hidden rounded bg-marca-noche/10">
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-marca-noche/10">
               {card.image_front_url && (
-                // eslint-disable-next-line @next/next/no-img-element -- thumbnail remoto
-                <img
+                <Image
                   src={card.image_front_url}
                   alt=""
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="64px"
+                  className="object-cover"
                 />
               )}
             </div>

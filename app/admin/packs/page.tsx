@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { RARITY_LABELS } from "@/lib/supabase/types";
 import type { PackType } from "@/lib/supabase/types";
@@ -32,13 +33,14 @@ export default async function AdminPacksPage() {
             href={`/admin/packs/${pack.id}`}
             className="flex items-center gap-3 rounded-lg border border-marca-noche/10 bg-white p-4 transition-colors hover:border-marca-violeta"
           >
-            <div className="h-12 w-12 shrink-0 overflow-hidden rounded bg-marca-noche/10">
+            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded bg-marca-noche/10">
               {pack.image_url && (
-                // eslint-disable-next-line @next/next/no-img-element -- thumbnail remoto
-                <img
+                <Image
                   src={pack.image_url}
                   alt=""
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="48px"
+                  className="object-cover"
                 />
               )}
             </div>
