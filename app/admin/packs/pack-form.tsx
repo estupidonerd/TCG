@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation";
 import { FormField, fieldInputClass } from "@/components/admin/form-field";
 import { SubmitButton, ErrorMessage } from "@/components/admin/submit-button";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
-import { RARITIES, RARITY_LABELS } from "@/lib/supabase/types";
+import { PACK_SKINS, RARITIES, RARITY_LABELS } from "@/lib/supabase/types";
 import type { CardSet, PackType } from "@/lib/supabase/types";
 import { createPackType, updatePackType } from "./actions";
+
+const SKIN_LABELS: Record<(typeof PACK_SKINS)[number], string> = {
+  normal: "Normal",
+  dorado: "Dorado",
+  tornasolado: "Tornasolado",
+};
 
 export function PackForm({
   initialPack,
@@ -69,6 +75,23 @@ export function PackForm({
         initialPreviewUrl={initialPack?.image_url ?? null}
         hint="Opcional: si no subes nada, /canjear usa la imagen base de /admin/ajustes."
       />
+
+      <FormField
+        label="Piel del sobre"
+        hint="Puramente cosmética: cómo se ve el sobre cerrado antes de abrirlo. No cambia pesos de rareza ni cantidad de cartas."
+      >
+        <select
+          name="skin"
+          defaultValue={initialPack?.skin ?? "normal"}
+          className={fieldInputClass}
+        >
+          {PACK_SKINS.map((skin) => (
+            <option key={skin} value={skin}>
+              {SKIN_LABELS[skin]}
+            </option>
+          ))}
+        </select>
+      </FormField>
 
       <fieldset className="flex flex-col gap-3 rounded-lg border border-marca-noche/10 p-4">
         <legend className="px-1 text-sm font-bold uppercase tracking-wide text-marca-noche/60">

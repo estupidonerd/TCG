@@ -15,7 +15,7 @@ export default async function EditPackPage({
     supabase
       .from("pack_types")
       .select(
-        "id, name, cards_count, rarity_weights, allowed_set_ids, guaranteed_rarity, image_url",
+        "id, name, cards_count, rarity_weights, allowed_set_ids, guaranteed_rarity, image_url, skin",
       )
       .eq("id", id)
       .single(),

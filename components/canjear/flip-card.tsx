@@ -6,6 +6,7 @@ import { RARITY_LABELS } from "@/lib/supabase/types";
 import type { CardTemplate, Genre, RedeemedCard, Rarity, Trait } from "@/lib/supabase/types";
 import { RARITY_BORDER_CLASS, RARITY_HEX } from "@/lib/supabase/rarity-colors";
 import { CardArtOverlay } from "@/components/cards/card-art-overlay";
+import { CardFoil, getFoilKind } from "@/components/cards/card-foil";
 
 // Pulso de brillo una sola vez para rara/épica/legendaria, del color de su
 // propia rareza -- común se revela sin ningún efecto especial, solo el
@@ -36,6 +37,9 @@ export function FlipCard({
 }) {
   const [glowDone, setGlowDone] = useState(false);
   const showGlow = flipped && !reducedMotion && !glowDone && GLOW_RARITIES.has(card.rarity);
+  const foilKind = getFoilKind(card);
+  const [sweeping, setSweeping] = useState(false);
+  const triggerSweep = () => setSweeping((prev) => prev || true);
 
   return (
     <motion.div
@@ -46,7 +50,12 @@ export function FlipCard({
       }
       className="flex flex-col gap-1"
     >
-      <div className="relative" style={{ perspective: 1000 }}>
+      <div
+        className="relative"
+        style={{ perspective: 1000 }}
+        onMouseEnter={triggerSweep}
+        onTouchStart={triggerSweep}
+      >
         <button
           type="button"
           onClick={onFlip}
@@ -64,7 +73,7 @@ export function FlipCard({
                 reveló la rareza. El fondo de la página es el mismo color
                 (marca-claro), así que sin sombra el borde quedaba
                 invisible -- la sombra es lo que lo hace notarse. */}
-            <div className="absolute inset-0 overflow-hidden rounded-xl border-2 border-marca-claro shadow-md [backface-visibility:hidden]">
+            <div className="card-relief absolute inset-0 overflow-hidden rounded-xl border-2 border-marca-claro [backface-visibility:hidden]">
               {cardBackUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- imagen remota, sin necesidad de next/image
                 <img src={cardBackUrl} alt="" className="h-full w-full object-cover" />
@@ -78,7 +87,7 @@ export function FlipCard({
             {/* Frente: la carta obtenida. Borde según rareza una vez
                 revelada (gris para común, color de marca para el resto). */}
             <div
-              className={`absolute inset-0 overflow-hidden rounded-xl border-2 bg-white shadow-md [backface-visibility:hidden] ${RARITY_BORDER_CLASS[card.rarity]}`}
+              className={`card-relief absolute inset-0 isolate overflow-hidden rounded-xl border-2 bg-white [backface-visibility:hidden] ${RARITY_BORDER_CLASS[card.rarity]}`}
               style={{ transform: "rotateY(180deg)" }}
             >
               {card.image_front_url ? (
@@ -108,6 +117,13 @@ export function FlipCard({
                     genre={genre}
                     trait={trait}
                   />
+                  {flipped && (
+                    <CardFoil
+                      kind={foilKind}
+                      sweeping={sweeping}
+                      onSweepEnd={() => setSweeping(false)}
+                    />
+                  )}
                 </>
               ) : (
                 <div className="flex h-full flex-col items-center justify-center gap-1 p-2 text-center">

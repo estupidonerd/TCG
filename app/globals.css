@@ -45,11 +45,66 @@ h6 {
    animate-spin) que no pasan por Framer Motion y por lo tanto no pueden
    leer el hook usePrefersReducedMotion desde un Server Component. Las
    animaciones armadas con Framer Motion se apagan aparte, por componente,
-   con ese hook. */
+   con ese hook. Las clases de foil de acá abajo también entran en esta
+   lista por la misma razón: son CSS puro, no Framer Motion. */
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse,
   .animate-spin,
-  .animate-bounce {
+  .animate-bounce,
+  .animate-foil-sweep-once {
     animation: none !important;
   }
+}
+
+/* Relieve físico: sombra suave debajo + bisel (borde superior-izq más claro,
+   inferior-der más oscuro) simulando grosor real. Estático a propósito, sin
+   ninguna animación -- se usa en cada lugar donde se muestra una carta,
+   común incluida, y el costo es solo box-shadow (nada que anime en la
+   grilla de /coleccion, donde hay cientos a la vez). No reemplaza el border
+   de color por rareza que ya tiene cada carta: se suma encima vía
+   box-shadow inset, que es una propiedad aparte del border real. */
+.card-relief {
+  box-shadow:
+    0 3px 6px rgba(0, 0, 33, 0.28),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.45),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Brillo de foil: SOLO la banda que se mueve lleva mix-blend-mode -- nada
+   queda tintado en reposo, el arte se ve con su color real hasta que pasa
+   el brillo por encima. Un único barrido diagonal, de arriba-izquierda
+   hacia abajo-derecha, disparado por hover/touch desde JS, siempre así,
+   sea en la grilla, el detalle o el sobre (ver
+   components/cards/card-foil.tsx). Nunca corre en bucle sola. 1s con una
+   curva de salida suave (sin frenar de golpe) para que se vea como un solo
+   paso lento, no un destello brusco.
+
+   La posición de reposo de .foil-sweep-band (sin la clase de animación) es
+   EXACTAMENTE la misma que el último fotograma de @keyframes foil-sweep, y
+   la animación usa forwards para sostenerlo hasta ese instante -- así,
+   cuando JS saca la clase al terminar, no hay ningún salto de un fotograma
+   "por defecto" (el bug del remanente de color visible era eso: sin
+   forwards, el navegador soltaba la animación un instante antes de que
+   React reaccionara y el fondo caía a su posición 0%/0% por defecto). */
+/* background-repeat: no-repeat es obligatorio acá -- sin esto, el degradé
+   (más grande que la carta, 260%) se repite en mosaico mientras se mueve, y
+   aparecen varias bandas superpuestas cruzándose (el parpadeo y la cruz de
+   líneas duras que se veían) en vez de un solo barrido limpio; también
+   explica el resto de color pegado en una esquina en reposo: sin
+   no-repeat, ni la posición fuera de rango queda realmente vacía, porque
+   el mosaico repite un fragmento visible dentro de la carta. */
+.foil-sweep-band {
+  background-position: 140% 140%;
+  background-repeat: no-repeat;
+}
+@keyframes foil-sweep {
+  from {
+    background-position: -140% -140%;
+  }
+  to {
+    background-position: 140% 140%;
+  }
+}
+.animate-foil-sweep-once {
+  animation: foil-sweep 2s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
 }

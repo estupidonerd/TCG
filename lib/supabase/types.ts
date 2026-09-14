@@ -164,6 +164,11 @@ export const CHAPTER_INFO_MAX_LENGTH = 90;
 // (0 si no la tiene). Usado en /coleccion.
 export type CollectionCard = Card & { quantity: number };
 
+// Piel puramente cosmética del sobre CERRADO en /canjear -- no afecta
+// pesos de rareza ni cantidad de cartas, solo cómo se ve antes de abrirlo.
+export const PACK_SKINS = ["normal", "dorado", "tornasolado"] as const;
+export type PackSkin = (typeof PACK_SKINS)[number];
+
 export type PackType = {
   id: string;
   name: string;
@@ -172,6 +177,7 @@ export type PackType = {
   allowed_set_ids: string[];
   guaranteed_rarity: Rarity | null;
   image_url: string | null;
+  skin: PackSkin;
 };
 
 export type RedeemedCard = {
@@ -200,12 +206,15 @@ export type RedeemedCard = {
   name_shadow_intensity: number;
   name_font_size: number;
   name_line_height: number;
+  // Para el brillo de foil: variante siempre tornasolado, sin importar rareza.
+  variant_of: string | null;
 };
 
 export type RedeemResult = {
   redemption_id: string;
   pack_type_name: string;
   pack_image_url: string | null;
+  skin: PackSkin;
   // Preferencia del jugador al momento del canje: determina si las cartas
   // repetidas de este sobre ya quedaron públicas o privadas por defecto.
   trade_default: TradeDefault;

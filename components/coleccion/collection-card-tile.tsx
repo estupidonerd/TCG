@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import type { CardTemplate, CollectionCard, Genre, Trait } from "@/lib/supabase/types";
 import { RARITY_BORDER_CLASS } from "@/lib/supabase/rarity-colors";
 import { CardArtOverlay } from "@/components/cards/card-art-overlay";
+import { CardFoil, getFoilKind } from "@/components/cards/card-foil";
 
 // El delay de entrada escalonada se cubre solo para las primeras ~24
 // cartas (más o menos una pantalla): con cientos de cartas, seguir sumando
@@ -30,6 +32,12 @@ export function CollectionCardTile({
   cardTemplate: CardTemplate | null;
 }) {
   const owned = card.quantity > 0;
+  const foilKind = owned ? getFoilKind(card) : null;
+  const [sweeping, setSweeping] = useState(false);
+  // Guardia: si ya está barriendo, ignora reentradas (por ejemplo el
+  // tilt 3D del hover empujando el cursor fuera y adentro) para que nunca
+  // se vea como más de una pasada.
+  const triggerSweep = () => setSweeping((prev) => prev || true);
 
   return (
     <motion.div
@@ -43,11 +51,20 @@ export function CollectionCardTile({
       }
     >
       <Link href={`/coleccion/${card.slug}`} className="group block">
-        <div style={{ perspective: reducedMotion ? undefined : 600 }}>
+        {/* El disparo del barrido va en este div, que NUNCA se transforma --
+            si estuviera en el motion.div de abajo (el que sí gira con
+            whileHover), el propio giro podía sacar y meter el cursor del
+            área varias veces mientras el spring se asienta, disparando el
+            barrido de nuevo cada vez. */}
+        <div
+          style={{ perspective: reducedMotion ? undefined : 600 }}
+          onMouseEnter={triggerSweep}
+          onTouchStart={triggerSweep}
+        >
           <motion.div
             whileHover={reducedMotion ? undefined : { rotateX: 5, rotateY: -5, scale: 1.04 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className={`relative aspect-[5/7] w-full overflow-hidden rounded-lg border-2 shadow-sm ${RARITY_BORDER_CLASS[card.rarity]}`}
+            className={`card-relief relative isolate aspect-[5/7] w-full overflow-hidden rounded-lg border-2 ${RARITY_BORDER_CLASS[card.rarity]}`}
           >
             {owned && card.image_front_url ? (
               <Image
@@ -89,6 +106,10 @@ export function CollectionCardTile({
                 genre={genre}
                 trait={trait}
               />
+            )}
+
+            {foilKind && (
+              <CardFoil kind={foilKind} sweeping={sweeping} onSweepEnd={() => setSweeping(false)} />
             )}
 
             {card.quantity > 1 && (

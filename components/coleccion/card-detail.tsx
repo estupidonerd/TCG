@@ -15,6 +15,7 @@ import {
 import { capitalizeFirst } from "@/lib/utils/capitalize";
 import { formatScore } from "@/lib/utils/format-score";
 import { CardArtOverlay } from "@/components/cards/card-art-overlay";
+import { CardFoil, getFoilKind } from "@/components/cards/card-foil";
 import { TradeAvailabilityControl } from "./trade-availability-control";
 
 export function CardDetail({
@@ -42,6 +43,9 @@ export function CardDetail({
 }) {
   const [flipped, setFlipped] = useState(false);
   const owned = quantity > 0;
+  const foilKind = owned ? getFoilKind(card) : null;
+  const [sweeping, setSweeping] = useState(false);
+  const triggerSweep = () => setSweeping((prev) => prev || true);
   // Mismo criterio que set_card_public_quantity en el servidor: siempre
   // queda privado el máximo entre 1 (la regla de siempre) y lo que reserve
   // algún mazo para esta carta.
@@ -117,8 +121,10 @@ export function CardDetail({
               <button
                 type="button"
                 onClick={() => setFlipped((value) => !value)}
+                onMouseEnter={triggerSweep}
+                onTouchStart={triggerSweep}
                 aria-label={flipped ? "Ver el frente de la carta" : "Ver el dorso de la carta"}
-                className={`relative aspect-[5/7] w-full touch-manipulation overflow-hidden rounded-2xl border-4 shadow-xl ${RARITY_BORDER_CLASS[card.rarity]}`}
+                className={`card-relief relative isolate aspect-[5/7] w-full touch-manipulation overflow-hidden rounded-2xl border-4 ${RARITY_BORDER_CLASS[card.rarity]}`}
               >
                 <motion.div
                   className="absolute inset-0"
@@ -158,6 +164,11 @@ export function CardDetail({
                           chapterInfo={card.chapter_info}
                           artist={card.artist}
                           showCreditLine
+                        />
+                        <CardFoil
+                          kind={foilKind}
+                          sweeping={sweeping}
+                          onSweepEnd={() => setSweeping(false)}
                         />
                       </>
                     ) : (

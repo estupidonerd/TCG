@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { RARITIES, type Rarity } from "@/lib/supabase/types";
+import { PACK_SKINS, RARITIES, type PackSkin, type Rarity } from "@/lib/supabase/types";
 
 const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/webp"]);
@@ -49,6 +49,10 @@ function parsePackInput(formData: FormData) {
   const cardsCount = Number(formData.get("cards_count") ?? 0);
   const guaranteedRarity = String(formData.get("guaranteed_rarity") ?? "");
   const allowedSetIds = formData.getAll("allowed_set_ids").map(String);
+  const skinRaw = String(formData.get("skin") ?? "normal");
+  const skin: PackSkin = (PACK_SKINS as readonly string[]).includes(skinRaw)
+    ? (skinRaw as PackSkin)
+    : "normal";
 
   if (!name) throw new Error("El nombre es obligatorio.");
   if (!Number.isInteger(cardsCount) || cardsCount <= 0) {
@@ -78,6 +82,7 @@ function parsePackInput(formData: FormData) {
     guaranteed_rarity: (RARITIES as string[]).includes(guaranteedRarity)
       ? (guaranteedRarity as Rarity)
       : null,
+    skin,
   };
 }
 
