@@ -1,15 +1,14 @@
 import { ImageResponse } from "next/og";
-import { loadGoogleFont } from "@/lib/utils/load-google-font";
+import { logoDataUri } from "@/lib/utils/logo-data-uri";
 
 // iOS no soporta SVG para el ícono de "Agregar a inicio", tiene que ser
 // PNG -- 180x180 es el tamaño que recomienda Apple. Sin transparencia:
-// iOS la ignora y puede rellenarla con negro, mejor un fondo sólido.
+// iOS la ignora y puede rellenarla con negro, así que el logo va sobre un
+// fondo sólido de la marca (#eaeff4).
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
-export default async function AppleIcon() {
-  const font = await loadGoogleFont("Titillium Web", 900, "EN");
-
+export default function AppleIcon() {
   return new ImageResponse(
     (
       <div
@@ -19,18 +18,12 @@ export default async function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#8100cc",
-          color: "#eaeff4",
-          fontSize: 84,
-          fontFamily: font ? "Titillium Web" : undefined,
+          backgroundColor: "#eaeff4",
         }}
       >
-        EN
+        <img src={logoDataUri()} width={130} height={130} alt="" />
       </div>
     ),
-    {
-      ...size,
-      fonts: font ? [{ name: "Titillium Web", data: font, weight: 900, style: "normal" }] : [],
-    },
+    { ...size },
   );
 }
