@@ -309,3 +309,20 @@ export type BlockedUser = {
   blocked_id: string;
   created_at: string;
 };
+
+export type VoteOption = {
+  id: string;
+  slug: string;
+  label: string;
+  description: string;
+  sort_order: number;
+  is_active: boolean;
+};
+
+export type VoteResponse = {
+  user_id: string;
+  ranking: string[];
+  other_text: string | null;
+  created_at: string;
+  updated_at: string;
+};

@@ -4,6 +4,9 @@ import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
 import { UserProvider } from "@/components/providers/user-provider";
 import { PackOpeningProvider } from "@/components/providers/pack-opening-provider";
+import { VoteStatusProvider } from "@/components/providers/vote-status-provider";
+import { VotePrompt } from "@/components/votes/vote-prompt";
+import { isVoteOpen } from "@/lib/config/vote";
 import { SiteHeader } from "@/components/nav/site-header";
 import { FeedbackButton } from "@/components/feedback/feedback-button";
 import type { GameSettings } from "@/lib/supabase/types";
@@ -71,6 +74,32 @@ export default async function RootLayout({
   // --font-card-name (definida en globals.css) ya cae a Titillium Web.
   const cardNameFontUrl = (settings as GameSettings | null)?.card_name_font_url ?? null;
 
+  // Votación "Próximas actualizaciones": fuera de la ventana de fechas (o
+  // sin sesión) no se hace ninguna consulta y todo queda apagado. Dentro,
+  // se leen solo dos cosas del propio jugador (RLS ya lo limita a él).
+  // Si la consulta de respuestas falla (por ejemplo, la migración todavía
+  // no se corrió en ese proyecto), se deja apagado en vez de mostrar un
+  // popup que después no podría guardar nada.
+  let voteStatus = { isOpen: false, hasVoted: true, welcomePending: false };
+  if (user && isVoteOpen()) {
+    const [{ data: profileRow }, { data: voteRow, error: voteError }] = await Promise.all([
+      supabase.from("profiles").select("has_seen_welcome").eq("id", user.id).single(),
+      supabase.from("vote_responses").select("user_id").eq("user_id", user.id).maybeSingle(),
+    ]);
+    if (voteError) {
+      // Silencioso para el jugador, pero visible en la consola del servidor:
+      // sin esto, una migración sin correr (o sin recargar el caché de
+      // PostgREST) deja todo apagado sin ninguna pista de por qué.
+      console.error("[votación] No se pudo leer vote_responses:", voteError.code, voteError.message);
+    } else {
+      voteStatus = {
+        isOpen: true,
+        hasVoted: Boolean(voteRow),
+        welcomePending: !profileRow?.has_seen_welcome,
+      };
+    }
+  }
+
   return (
     <html lang="es">
       {cardNameFontUrl && (
@@ -90,9 +119,12 @@ export default async function RootLayout({
       <body className={`${titilliumWeb.variable} antialiased`}>
         <UserProvider initialUser={user}>
           <PackOpeningProvider>
-            <SiteHeader />
-            {children}
-            <FeedbackButton />
+            <VoteStatusProvider value={voteStatus}>
+              <SiteHeader />
+              {children}
+              <FeedbackButton />
+              <VotePrompt />
+            </VoteStatusProvider>
           </PackOpeningProvider>
         </UserProvider>
       </body>

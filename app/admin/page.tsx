@@ -39,6 +39,11 @@ const SECTIONS = [
     description: "Fallas y sugerencias que enviaron los jugadores.",
   },
   {
+    href: "/admin/votos",
+    title: "Votos",
+    description: "Resultados de la votación de próximas actualizaciones.",
+  },
+  {
     href: "/admin/ajustes",
     title: "Ajustes",
     description: "Dorso único de las cartas (pantalla e impresión).",

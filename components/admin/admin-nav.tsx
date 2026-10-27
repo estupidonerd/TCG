@@ -13,6 +13,7 @@ const LINKS = [
   { href: "/admin/codes/stats", label: "Estadísticas" },
   { href: "/admin/usuarios", label: "Usuarios" },
   { href: "/admin/feedback", label: "Feedback" },
+  { href: "/admin/votos", label: "Votos" },
   { href: "/admin/ajustes", label: "Ajustes" },
 ];
 

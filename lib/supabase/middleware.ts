@@ -13,6 +13,7 @@ const PROTECTED_PATHS = [
   "/duelos",
   "/cuenta",
   "/ajustes",
+  "/proximas",
 ];
 
 function isProtectedPath(pathname: string) {

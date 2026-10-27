@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/components/providers/user-provider";
+import { useVoteStatus } from "@/components/providers/vote-status-provider";
 import { createClient } from "@/lib/supabase/client";
 
 export function UserMenu() {
   const { user, profile, loading } = useUser();
+  const { isOpen: voteOpen, hasVoted } = useVoteStatus();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -51,6 +53,7 @@ export function UserMenu() {
     null;
 
   const initial = displayName.charAt(0).toUpperCase();
+  const voteDot = voteOpen && !hasVoted;
 
   const handleCopy = async () => {
     if (!profile?.player_code) return;
@@ -72,6 +75,13 @@ export function UserMenu() {
 
   return (
     <div ref={menuRef} className="relative">
+      {voteDot && (
+        // Fuera del botón (que tiene overflow-hidden) para que no se recorte.
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 top-0 z-10 h-3 w-3 rounded-full border-2 border-marca-claro bg-marca-rojo"
+        />
+      )}
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -124,6 +134,23 @@ export function UserMenu() {
           >
             Ajustes
           </Link>
+
+          {voteOpen && (
+            <Link
+              href="/proximas"
+              onClick={() => setOpen(false)}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded border border-black/10 bg-white px-3 py-2 text-center text-sm font-semibold text-marca-noche transition-colors hover:bg-black/[.03]"
+            >
+              Próximas actualizaciones
+              {!hasVoted && (
+                <span
+                  role="img"
+                  aria-label="Pendiente de responder"
+                  className="h-2 w-2 shrink-0 rounded-full bg-marca-rojo"
+                />
+              )}
+            </Link>
+          )}
 
           <button
             type="button"

@@ -37,6 +37,17 @@ toca.
   se habla en Colombia. NUNCA voseo (nunca "vos", "tenés", "andá", "hacé clic").
   Si encontrás texto en voseo en el proyecto, es un error a corregir.
 
+## Reglas de base de datos
+- Desde el 30 de octubre de 2026, Supabase ya no da acceso automático a las
+  tablas nuevas del esquema public. Toda migración que cree una tabla debe
+  incluir, en el mismo archivo, sus GRANT con el mínimo permiso necesario:
+  SELECT a anon solo si la tabla es de lectura pública; SELECT a authenticated
+  en lo que el jugador debe leer (el RLS limita las filas); INSERT, UPDATE o
+  DELETE a authenticated solo si el cliente escribe directo con una política
+  de RLS; y todos los permisos a service_role. Si toda la escritura pasa por
+  funciones SECURITY DEFINER, no des escritura directa a authenticated. El
+  RLS sigue siendo obligatorio además del GRANT.
+
 ## Identidad de marca
 Tipografía: Titillium Web (Google Fonts). Títulos y nombres de carta en peso 900
 siempre en MAYÚSCULAS. Subtítulos en 300. Texto corrido en 400.
@@ -55,3 +66,6 @@ completa sobre #000021. Nunca uses colores fuera de esta paleta.
 Carta final 63 x 88 mm. Bloque imprimible 63 x 176 mm: frente abajo en
 orientación normal, dorso arriba rotado 180 grados, unidos por el borde
 superior del frente. Se dobla por esa línea.
+
+## Estado del proyecto
+Al terminar cualquier tarea, actualiza ESTADO.md con lo que cambió.
