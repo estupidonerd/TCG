@@ -19,7 +19,7 @@ Revisado contra el código real el 2026-10-15 (commit `2a6934c`); punto 11 y úl
 9. Duelos o base de datos o pantalla preparada para ellos: **hecho a medias**. `/duelos` es una pantalla "Próximamente" con enlace en la barra; no hay tablas ni funciones de duelo. Lo más cercano son los mazos (`decks`, `deck_cards`, `save_deck`), que sí funcionan.
 10. Estadísticas, botón de feedback y bienvenida al primer login: **hecho y funcionando**. Panel `/admin` con totales y `/admin/codes/stats` (canjes por lote); botón flotante de feedback con modal y bandeja en `/admin/feedback`; `WelcomeModal` controlado por `profiles.has_seen_welcome`.
 
-11. Votación "Próximas actualizaciones" (beta): **hecho, pendiente de correr la migración en pruebas**. Solo está activa del 22 al 30 de noviembre de 2026 (hora de Madrid; fechas en `lib/config/vote.ts`), fuera de eso no se muestra nada y el código queda apagado. Jugador: ítem en el menú del avatar con puntico (también sobre el avatar), `/proximas` para ordenar con subir/bajar y texto "Otro", y un popup que espera al WelcomeModal y no sale en `/canjear`, `/admin`, durante la apertura de un sobre ni sobre otro modal. Admin: `/admin/votos` con resumen, posición promedio y primeros lugares por idea, textos "Otro", exportar CSV y editor de ideas (no se apaga por fecha). Las fechas están también en la función `save_vote_response`: si cambian, hay que cambiarlas en los dos lugares.
+11. Votación "Próximas actualizaciones" (beta): **hecho y desplegado (commit `97a2547`), con la migración corrida en pruebas y en producción**. Solo está activa del 22 al 30 de noviembre de 2026 (hora de Madrid; fechas en `lib/config/vote.ts`), fuera de eso no se muestra nada y el código queda apagado. Jugador: ítem en el menú del avatar con puntico (también sobre el avatar), `/proximas` para ordenar con subir/bajar y texto "Otro", y un popup que espera al WelcomeModal y no sale en `/canjear`, `/admin`, durante la apertura de un sobre ni sobre otro modal. Admin: `/admin/votos` con resumen, posición promedio y primeros lugares por idea, textos "Otro", exportar CSV y editor de ideas (no se apaga por fecha). Las fechas están también en la función `save_vote_response`: si cambian, hay que cambiarlas en los dos lugares.
 
 ## Migraciones (`supabase/migrations/`)
 
@@ -66,4 +66,4 @@ Listado completo, en orden:
 | 20260916000000_card_name_size_per_card | Tamaño de nombre por carta |
 | 20260917000000_card_variants | Cartas variante |
 | 20260918000000_pack_skin | Piel del sobre y `variant_of`/`skin` en `redeem_code` |
-| 20260919000000_next_updates_vote | Votación de próximas actualizaciones: `vote_options`, `vote_responses`, `save_vote_response`, con GRANTs. Sin correr todavía (primero en pruebas) |
+| 20260919000000_next_updates_vote | Votación de próximas actualizaciones: `vote_options`, `vote_responses`, `save_vote_response`, con GRANTs. Corrida en pruebas y en producción (confirmado por ti, no verificable desde el código) |
