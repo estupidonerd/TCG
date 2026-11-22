@@ -5,6 +5,8 @@ import { SettingsForm } from "./settings-form";
 import { GenresForm } from "./genres-form";
 import { TraitsForm } from "./traits-form";
 import { CardTemplateForm, type TemplateSampleCard } from "./card-template-form";
+import { TestClockSection } from "./test-clock-section";
+import { isTestEnv } from "@/lib/config/app-env";
 import type { CardTemplate, GameSettings, Genre, Trait } from "@/lib/supabase/types";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 10;
@@ -143,6 +145,8 @@ export default async function AdminAjustesPage() {
         initialFontUrl={typedSettings?.card_name_font_url ?? null}
         sampleCards={sampleCards}
       />
+
+      {isTestEnv && <TestClockSection />}
     </div>
   );
 }

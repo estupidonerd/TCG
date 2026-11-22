@@ -20,6 +20,15 @@ Revisado contra el código real el 2026-10-15 (commit `2a6934c`); punto 11 y úl
 10. Estadísticas, botón de feedback y bienvenida al primer login: **hecho y funcionando**. Panel `/admin` con totales y `/admin/codes/stats` (canjes por lote); botón flotante de feedback con modal y bandeja en `/admin/feedback`; `WelcomeModal` controlado por `profiles.has_seen_welcome`.
 
 11. Votación "Próximas actualizaciones" (beta): **hecho y desplegado (commit `97a2547`), con la migración corrida en pruebas y en producción**. Solo está activa del 22 al 30 de noviembre de 2026 (hora de Madrid; fechas en `lib/config/vote.ts`), fuera de eso no se muestra nada y el código queda apagado. Jugador: ítem en el menú del avatar con puntico (también sobre el avatar), `/proximas` para ordenar con subir/bajar y texto "Otro", y un popup que espera al WelcomeModal y no sale en `/canjear`, `/admin`, durante la apertura de un sobre ni sobre otro modal. Admin: `/admin/votos` con resumen, posición promedio y primeros lugares por idea, textos "Otro", exportar CSV y editor de ideas (no se apaga por fecha). Las fechas están también en la función `save_vote_response`: si cambian, hay que cambiarlas en los dos lugares.
+12. Favicon e iconos: **hecho y desplegado (commit `436cf9a`)**. El logo (`app/icon.png`, 174x174) es el favicon de la pestaña; el icono de iPhone y los de la app instalable (192 y 512) lo ponen sobre fondo `#eaeff4`. El de 512 está ampliado casi 2 veces: conviene reemplazar `app/icon.png` por una versión más grande o SVG cuando exista.
+13. Entorno de pruebas (rama `feature/reloj-de-pruebas`, **sin commit ni push todavía**): reloj de pruebas, datos de ejemplo y guion de humo.
+   - Migración `20260920000000_test_clock`: columnas `game_settings.allow_test_clock` (false) y `test_clock_offset_minutes` (0), función `game_now()` (now() exacto salvo que `allow_test_clock` sea true) y `admin_set_test_clock(int)` (solo `service_role`; lanza error si el reloj está apagado). **No corrida en ningún proyecto todavía.** Las funciones que ya existían (ventana de la votación, bans, vencimiento de intercambios) siguen con `now()`: este reloj no las mueve.
+   - Pantalla: sección «Reloj de pruebas» en `/admin/ajustes`, visible solo con `NEXT_PUBLIC_APP_ENV=test` (hora simulada, hora real, avanzar 1 día / 7 días / 1 mes, volver a la hora real). Las Server Actions también se niegan fuera de ese entorno.
+   - `supabase/seed-pruebas.sql`: datos de ejemplo idempotentes, solo para Pruebas (editar los tres correos de arriba).
+   - `docs/prueba-de-humo.md`: guion de 10 minutos para después de cada paso a producción.
+   - `.env.example` documenta las variables (`NEXT_PUBLIC_APP_ENV` incluida); `.gitignore` deja de ignorarlo.
+   - CLAUDE.md: nueva sección «Entorno de pruebas y flujo de trabajo».
+   - `supabase/huella-esquema.sql`: consulta de solo lectura que da un código (md5) por cada parte del esquema de `public`; se corre igual en Pruebas y producción y se comparan.
 
 ## Migraciones (`supabase/migrations/`)
 
@@ -67,3 +76,4 @@ Listado completo, en orden:
 | 20260917000000_card_variants | Cartas variante |
 | 20260918000000_pack_skin | Piel del sobre y `variant_of`/`skin` en `redeem_code` |
 | 20260919000000_next_updates_vote | Votación de próximas actualizaciones: `vote_options`, `vote_responses`, `save_vote_response`, con GRANTs. Corrida en pruebas y en producción (confirmado por ti, no verificable desde el código) |
+| 20260920000000_test_clock | Reloj de pruebas: `allow_test_clock`, `test_clock_offset_minutes`, `game_now()`, `admin_set_test_clock()`. Pendiente de correr en Pruebas |
