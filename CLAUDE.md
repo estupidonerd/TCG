@@ -69,3 +69,20 @@ superior del frente. Se dobla por esa línea.
 
 ## Estado del proyecto
 Al terminar cualquier tarea, actualiza ESTADO.md con lo que cambió.
+
+## Entorno de pruebas y flujo de trabajo
+- Toda función nueva de Postgres que dependa de la hora usa `game_now()`,
+  nunca `now()`. `game_now()` devuelve `now()` exacto en producción y solo se
+  desplaza en el proyecto de Pruebas (ver el reloj de pruebas en
+  /admin/ajustes, visible únicamente con `NEXT_PUBLIC_APP_ENV=test`).
+- Nunca se corrige nada a mano en el SQL Editor de Pruebas: una corrección es
+  una migración nueva, igual que en producción. Los datos de ejemplo salen de
+  `supabase/seed-pruebas.sql`, que solo se corre en Pruebas.
+- Cada pieza de trabajo va en su propia rama. Después de probar una pieza,
+  recuérdale SIEMPRE al usuario hacer commit local (sin push) y correr la
+  consulta de huella del esquema en los dos SQL Editors (Pruebas y
+  producción). Nunca hagas push sin que el usuario lo pida.
+- Ninguna URL ni clave de Supabase va escrita en el código: salen siempre de
+  variables de entorno (`NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`), para que la
+  vista previa de Vercel pueda apuntar a Pruebas.
