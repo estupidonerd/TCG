@@ -1,5 +1,6 @@
 import { requireAdminOrRedirect } from "@/lib/admin/require-admin";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { AccessBanner } from "@/components/admin/access-banner";
 
 export default async function AdminLayout({
   children,
@@ -11,6 +12,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-svh bg-marca-claro">
+      <AccessBanner />
       <AdminNav />
       <div className="mx-auto max-w-5xl px-4 py-6">{children}</div>
     </div>

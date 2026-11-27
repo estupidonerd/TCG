@@ -14,6 +14,7 @@ const LINKS = [
   { href: "/admin/usuarios", label: "Usuarios" },
   { href: "/admin/feedback", label: "Feedback" },
   { href: "/admin/votos", label: "Votos" },
+  { href: "/admin/portada", label: "Portada" },
   { href: "/admin/ajustes", label: "Ajustes" },
 ];
 
