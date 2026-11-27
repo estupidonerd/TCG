@@ -1,13 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import { Titillium_Web } from "next/font/google";
 import "./globals.css";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { getAccessState } from "@/lib/access/get-access-state";
 import { UserProvider } from "@/components/providers/user-provider";
 import { PackOpeningProvider } from "@/components/providers/pack-opening-provider";
 import { VoteStatusProvider } from "@/components/providers/vote-status-provider";
 import { VotePrompt } from "@/components/votes/vote-prompt";
 import { isVoteOpen } from "@/lib/config/vote";
 import { SiteHeader } from "@/components/nav/site-header";
+import { PlayerNoticeBar } from "@/components/access/player-notice-bar";
 import { FeedbackButton } from "@/components/feedback/feedback-button";
 import type { GameSettings } from "@/lib/supabase/types";
 
@@ -62,10 +65,20 @@ export default async function RootLayout({
       data: { user },
     },
     { data: settings },
+    accessState,
+    requestHeaders,
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from("game_settings").select("card_name_font_url").eq("id", true).single(),
+    getAccessState(),
+    headers(),
   ]);
+
+  // Modo Cerrado: el middleware reescribe las rutas del juego a /aviso y marca
+  // este header. Esa pantalla, y la de entrada sin sesión, no dibujan el menú,
+  // el botón de feedback ni el popup de la votación.
+  const accessBlocked = requestHeaders.get("x-access-blocked") === "1";
+  const showChrome = !accessBlocked && !(accessState.access_mode === "closed" && !user);
 
   // La fuente del nombre la sube el admin desde /admin/ajustes (no un
   // asset del proyecto): se inyecta acá como @font-face apuntando a esa
@@ -81,7 +94,7 @@ export default async function RootLayout({
   // no se corrió en ese proyecto), se deja apagado en vez de mostrar un
   // popup que después no podría guardar nada.
   let voteStatus = { isOpen: false, hasVoted: true, welcomePending: false };
-  if (user && isVoteOpen()) {
+  if (user && showChrome && isVoteOpen()) {
     const [{ data: profileRow }, { data: voteRow, error: voteError }] = await Promise.all([
       supabase.from("profiles").select("has_seen_welcome").eq("id", user.id).single(),
       supabase.from("vote_responses").select("user_id").eq("user_id", user.id).maybeSingle(),
@@ -120,10 +133,17 @@ export default async function RootLayout({
         <UserProvider initialUser={user}>
           <PackOpeningProvider>
             <VoteStatusProvider value={voteStatus}>
-              <SiteHeader />
+              {showChrome && user && accessState.access_mode === "notice" && (
+                <PlayerNoticeBar
+                  title={accessState.notice_title}
+                  body={accessState.notice_body}
+                  returnText={accessState.notice_return_text}
+                />
+              )}
+              {showChrome && <SiteHeader />}
               {children}
-              <FeedbackButton />
-              <VotePrompt />
+              {showChrome && <FeedbackButton />}
+              {showChrome && <VotePrompt />}
             </VoteStatusProvider>
           </PackOpeningProvider>
         </UserProvider>

@@ -11,10 +11,14 @@ export function ColorField({
   label,
   name,
   defaultValue,
+  onChange,
 }: {
   label: string;
   name: string;
   defaultValue: string | null;
+  // Opcional: avisa al padre cada vez que el valor es un hex válido (para
+  // vistas previas en vivo). Sin esto, el componente funciona igual que antes.
+  onChange?: (hex: string) => void;
 }) {
   const [hex, setHex] = useState(defaultValue && HEX_PATTERN.test(defaultValue) ? defaultValue : "#000000");
   const [text, setText] = useState(defaultValue ?? "");
@@ -29,6 +33,7 @@ export function ColorField({
           onChange={(event) => {
             setHex(event.target.value);
             setText(event.target.value);
+            onChange?.(event.target.value);
           }}
           className="h-9 w-12 shrink-0 cursor-pointer rounded border border-marca-noche/20 bg-white p-1"
         />
@@ -39,7 +44,10 @@ export function ColorField({
           onChange={(event) => {
             const value = event.target.value;
             setText(value);
-            if (HEX_PATTERN.test(value)) setHex(value);
+            if (HEX_PATTERN.test(value)) {
+              setHex(value);
+              onChange?.(value);
+            }
           }}
           pattern="^#[0-9a-fA-F]{6}$"
           placeholder="#8100cc"

@@ -4,6 +4,9 @@ import { safeRedirectPath } from "@/lib/utils/safe-redirect";
 import { GoogleLoginButton } from "@/components/auth/google-login-button";
 import { DiscordLoginButton } from "@/components/auth/discord-login-button";
 import { TwitchLoginButton } from "@/components/auth/twitch-login-button";
+import { getAccessState } from "@/lib/access/get-access-state";
+import { AccessNoticeCard } from "@/components/access/access-notice-card";
+import { TeamAccessLink } from "@/components/access/team-access-link";
 
 export default async function LoginPage({
   searchParams,
@@ -24,9 +27,34 @@ export default async function LoginPage({
     redirect(next);
   }
 
+  // Si falla la lectura, getAccessState() devuelve "abierto": el login se ve
+  // como siempre.
+  const access = await getAccessState();
+  const notice = (
+    <AccessNoticeCard
+      title={access.notice_title}
+      body={access.notice_body}
+      textColor={access.notice_text_color}
+      returnText={access.notice_return_text}
+    />
+  );
+
+  // Cerrado: la pantalla de entrada es el aviso, sin botones de login. El
+  // equipo entra por el enlace discreto de abajo (/acceso-equipo).
+  if (access.access_mode === "closed") {
+    return (
+      <main className="flex min-h-svh flex-col items-center justify-center bg-marca-noche px-6 py-12">
+        <div className="w-full max-w-xl">{notice}</div>
+        <TeamAccessLink />
+      </main>
+    );
+  }
+
   return (
     <main className="flex min-h-svh flex-col items-center justify-center px-6 py-12">
       <div className="flex w-full max-w-sm flex-col items-center gap-8 text-center">
+        {access.access_mode === "notice" && notice}
+
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl">Estúpido Nerd TCG</h1>
           <p className="text-sm font-light text-marca-noche/70">
