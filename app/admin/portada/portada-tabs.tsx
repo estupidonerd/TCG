@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Para agregar una pestaña nueva (por ejemplo "Fondo y textos"): suma una
-// entrada acá y crea su carpeta dentro de app/admin/portada/ con su page.tsx.
-// El resto (layout, ruta base, menú) no cambia.
-const TABS = [{ href: "/admin/portada/acceso", label: "Acceso y aviso" }];
+// Para agregar una pestaña nueva: suma una entrada acá y crea su carpeta dentro
+// de app/admin/portada/ con su page.tsx. El resto (layout, ruta base, menú) no
+// cambia.
+const TABS = [
+  { href: "/admin/portada/acceso", label: "Acceso y aviso" },
+  { href: "/admin/portada/fondo", label: "Fondo y textos" },
+];
 
 export function PortadaTabs() {
   const pathname = usePathname();
