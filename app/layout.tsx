@@ -10,6 +10,7 @@ import { VoteStatusProvider } from "@/components/providers/vote-status-provider"
 import { VotePrompt } from "@/components/votes/vote-prompt";
 import { isVoteOpen } from "@/lib/config/vote";
 import { SiteHeader } from "@/components/nav/site-header";
+import { PlayerNoticeBar } from "@/components/access/player-notice-bar";
 import { FeedbackButton } from "@/components/feedback/feedback-button";
 import type { GameSettings } from "@/lib/supabase/types";
 
@@ -132,6 +133,13 @@ export default async function RootLayout({
         <UserProvider initialUser={user}>
           <PackOpeningProvider>
             <VoteStatusProvider value={voteStatus}>
+              {showChrome && user && accessState.access_mode === "notice" && (
+                <PlayerNoticeBar
+                  title={accessState.notice_title}
+                  body={accessState.notice_body}
+                  returnText={accessState.notice_return_text}
+                />
+              )}
               {showChrome && <SiteHeader />}
               {children}
               {showChrome && <FeedbackButton />}
