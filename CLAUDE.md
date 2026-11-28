@@ -47,6 +47,17 @@ toca.
   de RLS; y todos los permisos a service_role. Si toda la escritura pasa por
   funciones SECURITY DEFINER, no des escritura directa a authenticated. El
   RLS sigue siendo obligatorio además del GRANT.
+- Toda función nueva en public termina con `revoke execute ... from public` y
+  con su `grant execute` explícito al rol que corresponda: `service_role`,
+  `authenticated` o ambos, y `anon` solo si la usa la pantalla de entrada sin
+  sesión (hoy: `get_public_access_state` y `get_active_splash`). Si es una
+  función interna que solo llaman otras funciones (SECURITY DEFINER), solo
+  `service_role`. El `revoke ... from public` es obligatorio aunque las
+  funciones nuevas ya nazcan cerradas para anon y authenticated (migración
+  `20260925000000_default_privileges_functions`): Postgres da EXECUTE a PUBLIC a
+  toda función nueva y anon y authenticated lo heredan. Una función que recibe
+  un id de usuario como parámetro nunca debe ser ejecutable por el navegador
+  si no valida quién llama con `auth.uid()`.
 
 ## Identidad de marca
 Tipografía: Titillium Web (Google Fonts). Títulos y nombres de carta en peso 900
